@@ -6,9 +6,10 @@ interface PlayerProps {
   player: PlayerType;
   positionClass: string;
   isCurrentTurn: boolean;
+  revealCards?: boolean;
 }
 
-export const Player: React.FC<PlayerProps> = ({ player, positionClass, isCurrentTurn }) => {
+export const Player: React.FC<PlayerProps> = ({ player, positionClass, isCurrentTurn, revealCards = false }) => {
   return (
     <div className={`absolute ${positionClass} flex flex-col items-center gap-2 transition-all duration-300 ${!player.isActive ? 'opacity-50' : ''}`}>
       
@@ -16,7 +17,7 @@ export const Player: React.FC<PlayerProps> = ({ player, positionClass, isCurrent
       <div className="flex -space-x-4 mb-1 z-10 mt-1">
         {player.cards.map((card, i) => (
           <div key={i} className="transform hover:-translate-y-2 transition-transform shadow-lg rounded-lg">
-            <Card card={card} faceUp={player.isHuman || player.action === 'all-in'} />
+            <Card card={card} faceUp={player.isHuman || player.action === 'all-in' || revealCards} />
           </div>
         ))}
         {/* Placeholder if no cards */}
@@ -26,7 +27,7 @@ export const Player: React.FC<PlayerProps> = ({ player, positionClass, isCurrent
       </div>
 
       {/* Player Panel */}
-      <div className={`glass-panel p-2 sm:p-3 min-w-[100px] sm:min-w-[120px] text-center relative ${isCurrentTurn ? 'ring-2 ring-yellow-400' : ''}`}>
+      <div className={`glass-panel p-2 sm:p-3 min-w-[100px] sm:min-w-[120px] text-center relative ${isCurrentTurn ? 'ring-2 ring-yellow-400 border-yellow-400/50' : ''}`}>
         {/* Role Badge */}
         {player.role && (
           <div className="absolute -top-3 -right-3 w-6 h-6 rounded-full bg-white text-green-900 text-xs font-bold flex items-center justify-center shadow-md">
@@ -41,8 +42,8 @@ export const Player: React.FC<PlayerProps> = ({ player, positionClass, isCurrent
           </div>
         )}
 
-        <div className="font-medium text-sm text-white/90 truncate">{player.name}</div>
-        <div className="text-yellow-400 font-bold text-sm tracking-tight">${player.chips.toLocaleString()}</div>
+        <div className="font-medium text-sm text-white/90 truncate shadow-black drop-shadow-md">{player.name}</div>
+        <div className="text-yellow-400 font-bold text-sm tracking-tight drop-shadow-md">${player.chips.toLocaleString()}</div>
         
         {/* Bet Amount */}
         {player.currentBet > 0 && (
