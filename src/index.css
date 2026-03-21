@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+@theme {
+  --color-green-800: #1a4d2e;
+  --color-green-900: #0f2c19;
+  
+  --animate-fade-in: fade-in 0.5s ease-out;
+  --animate-fade-in-up: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-flip-in: flip-in 0.5s ease-out forwards;
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes fade-in-up {
+    from { opacity: 0; transform: translate(-50%, 20px) scale(0.95); }
+    to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  }
+
+  @keyframes flip-in {
+    from { opacity: 0; transform: rotateY(-90deg) scale(0.9); }
+    to { opacity: 1; transform: rotateY(0) scale(1); }
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-gradient-to-br from-green-800 to-green-900 text-white min-h-screen font-sans antialiased;
+    overscroll-behavior-y: none;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-white/10 backdrop-blur-md border border-white/20 shadow-xl rounded-2xl;
+  }
+  
+  .glass-button {
+    @apply bg-white/10 backdrop-blur-md border border-white/20 shadow-xl rounded-2xl hover:bg-white/20 active:bg-white/30 transition-all duration-200 active:scale-95 flex items-center justify-center font-medium cursor-pointer;
+  }
+  
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+}
