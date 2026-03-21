@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "afterAgentThought": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CURSOR_PROJECT_DIR\"/.cursor/hooks/stop_words.sh"
+          }
+        ]
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CURSOR_PROJECT_DIR\"/.cursor/hooks/stop_commands.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
