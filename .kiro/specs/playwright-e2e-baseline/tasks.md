@@ -11,8 +11,8 @@
 
 ---
 
-- [ ] 1. Playwright環境構築
-- [ ] 1.1 Playwrightのインストールと設定ファイル作成
+- [x] 1. Playwright環境構築
+- [x] 1.1 Playwrightのインストールと設定ファイル作成
   - `@playwright/test` をdevDependencyとしてインストールする
   - Playwrightのブラウザバイナリをインストールする（Chromiumのみ）
   - Playwright設定ファイルを作成し、Vite devサーバーの自動起動を設定する
@@ -21,7 +21,7 @@
   - _Requirements: 1.1, 1.2, 1.3_
   - _Contracts: PlaywrightConfig_
 
-- [ ] 1.2 package.jsonへのテストスクリプト追加
+- [x] 1.2 package.jsonへのテストスクリプト追加
   - E2Eテスト実行用の `test:e2e` スクリプトを追加する（`playwright test`）
   - ベースライン更新用の `test:e2e:update` スクリプトを追加する（`playwright test --update-snapshots`）
   - テストディレクトリ `e2e/` を作成する
