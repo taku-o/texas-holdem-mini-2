@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import type { Page, TestInfo } from '@playwright/test';
 import { expect } from '@playwright/test';
 import {
   PLAYER_CONTAINER_SELECTOR,
@@ -15,6 +15,8 @@ export interface PlayerIds {
   cpuIds: string[];
 }
 
+export const PLAYER_ID_PATTERN = /^player-(.+)$/;
+
 export async function findPlayerIds(page: Page): Promise<PlayerIds> {
   const players = page.locator(PLAYER_CONTAINER_SELECTOR);
   const results = await players.evaluateAll(elements =>
@@ -29,7 +31,11 @@ export async function findPlayerIds(page: Page): Promise<PlayerIds> {
 
   for (const { testId, text } of results) {
     if (!testId) continue;
-    const id = testId.replace('player-', '');
+    const match = testId.match(PLAYER_ID_PATTERN);
+    if (!match) {
+      throw new Error(`Unexpected testId format: "${testId}" does not match player-{id} pattern`);
+    }
+    const id = match[1];
     if (text?.includes(HUMAN_PLAYER_LABEL)) {
       humanId = id;
     } else {
@@ -61,6 +67,14 @@ export function getCommunityFaceUpCards(page: Page) {
   return page.getByTestId(TESTID_COMMUNITY_CARDS).locator(CARD_FACE_UP_SELECTOR);
 }
 
+export function getViewport(testInfo: TestInfo): { width: number; height: number } {
+  const viewport = testInfo.project.use.viewport;
+  if (!viewport) {
+    throw new Error('Viewport is not configured in playwright.config.ts');
+  }
+  return viewport;
+}
+
 type PhaseResult = 'cards' | 'showdown';
 
 /**
@@ -84,7 +98,11 @@ export async function advanceToPhaseOrShowdown(
     const controlsReady = expect(controls).not.toHaveCSS('pointer-events', 'none', { timeout: PHASE_WAIT_TIMEOUT })
       .then(() => 'controls' as const);
 
-    const result = await Promise.any([cardsReached, showdown, controlsReady]);
+    const result = await Promise.any([cardsReached, showdown, controlsReady])
+      .catch((err: unknown) => {
+        const reasons = err instanceof AggregateError ? err.errors.map(String).join('; ') : String(err);
+        throw new Error(`Game state timeout: no phase transition detected (${reasons})`);
+      });
 
     if (result === 'cards') return 'cards';
     if (result === 'showdown') return 'showdown';

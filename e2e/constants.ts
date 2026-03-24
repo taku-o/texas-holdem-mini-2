@@ -12,3 +12,11 @@ export const CARD_FACE_UP_SELECTOR = '[data-testid="card-face-up"]';
 export const FLOP_CARD_COUNT = 3;
 export const TURN_CARD_COUNT = 4;
 export const RIVER_CARD_COUNT = 5;
+
+export const ROLE_BADGE_SELECTOR = '[data-testid^="role-badge-"]';
+export const ROLE_BADGE_COUNT = 3;
+export const COMMUNITY_CARD_SLOT_COUNT = 5;
+export const HUMAN_HAND_CARD_COUNT = 2;
+export const DISABLED_OPACITY = '0.5';
+// showdownを強制するための到達不可能なカード枚数
+export const UNREACHABLE_CARD_COUNT = RIVER_CARD_COUNT + 1;

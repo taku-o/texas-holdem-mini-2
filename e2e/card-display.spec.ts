@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { CARD_FACE_UP_SELECTOR } from './constants';
+import { CARD_FACE_UP_SELECTOR, HUMAN_HAND_CARD_COUNT } from './constants';
 import { findPlayerIds, startGame } from './helpers';
 
 test.describe('カード表示', () => {
@@ -19,8 +19,8 @@ test.describe('カード表示', () => {
 
     const faceUpCards = cardsContainer.locator(CARD_FACE_UP_SELECTOR);
 
-    await expect(faceUpCards).toHaveCount(2);
-    for (let i = 0; i < 2; i++) {
+    await expect(faceUpCards).toHaveCount(HUMAN_HAND_CARD_COUNT);
+    for (let i = 0; i < HUMAN_HAND_CARD_COUNT; i++) {
       await expect(faceUpCards.nth(i)).toContainText(/(2|3|4|5|6|7|8|9|10|J|Q|K|A)/);
     }
   });
@@ -43,7 +43,7 @@ test.describe('カード表示', () => {
 
     const cards = cardsContainer.locator('> div');
     const cardCount = await cards.count();
-    expect(cardCount).toBe(2);
+    expect(cardCount).toBe(HUMAN_HAND_CARD_COUNT);
 
     for (let i = 0; i < cardCount; i++) {
       const card = cards.nth(i);

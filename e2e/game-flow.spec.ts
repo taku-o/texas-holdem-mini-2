@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { TESTID_POT_DISPLAY, TESTID_ACTION_LOGS, FLOP_CARD_COUNT, TURN_CARD_COUNT, RIVER_CARD_COUNT } from './constants';
+import { TESTID_POT_DISPLAY, TESTID_ACTION_LOGS, FLOP_CARD_COUNT, TURN_CARD_COUNT, RIVER_CARD_COUNT, UNREACHABLE_CARD_COUNT } from './constants';
 import { startGame, advanceToPhaseOrShowdown, getCommunityFaceUpCards } from './helpers';
 
 test.describe('ゲームフロー統合', () => {
@@ -37,7 +37,7 @@ test.describe('ゲームフロー統合', () => {
 
     if (!reachedShowdown) {
       // river到達後の最終ベッティングラウンド。到達不可能なカード枚数を指定しshowdownまで進行。
-      await advanceToPhaseOrShowdown(page, RIVER_CARD_COUNT + 1);
+      await advanceToPhaseOrShowdown(page, UNREACHABLE_CARD_COUNT);
     }
 
     await expect(potDisplay).toContainText('$0');

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { PLAYER_COUNT, PLAYER_CONTAINER_SELECTOR, TESTID_POT_DISPLAY, TESTID_POKER_TABLE } from './constants';
-import { startGame } from './helpers';
+import { PLAYER_COUNT, PLAYER_CONTAINER_SELECTOR, TESTID_POT_DISPLAY, TESTID_POKER_TABLE, ROLE_BADGE_SELECTOR, ROLE_BADGE_COUNT } from './constants';
+import { startGame, getViewport } from './helpers';
 
 test.describe('ゲーム画面レイアウト', () => {
   test.beforeEach(async ({ page }) => {
@@ -25,8 +25,8 @@ test.describe('ゲーム画面レイアウト', () => {
   });
 
   test('ロールバッジ（D / SB / BB）が表示される (3.4)', async ({ page }) => {
-    const roleBadges = page.locator('[data-testid^="role-badge-"]');
-    await expect(roleBadges).toHaveCount(3);
+    const roleBadges = page.locator(ROLE_BADGE_SELECTOR);
+    await expect(roleBadges).toHaveCount(ROLE_BADGE_COUNT);
 
     const badgeTexts = await roleBadges.allTextContents();
     expect(badgeTexts).toContain('D');
@@ -38,7 +38,7 @@ test.describe('ゲーム画面レイアウト', () => {
     const players = page.locator(PLAYER_CONTAINER_SELECTOR);
     await expect(players).toHaveCount(PLAYER_COUNT);
 
-    const viewport = testInfo.project.use.viewport!;
+    const viewport = getViewport(testInfo);
 
     for (let i = 0; i < PLAYER_COUNT; i++) {
       const player = players.nth(i);

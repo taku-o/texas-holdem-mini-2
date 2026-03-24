@@ -111,8 +111,42 @@ git push origin HEAD
 
 
 takt --task "/kiro:spec-impl playwright-e2e-baseline 7"
+complete task 
+commit
+git push origin HEAD
 
 
+/review 9
+
+
+
+
+  中程度
+
+  1. advanceToPhaseOrShowdownのAggregateError未処理 (e2e/helpers.ts:87)
+    - Promise.any()の3つのpromiseが全てrejectした場合、AggregateErrorがスローされるがcatchされていない。テスト失敗時のエラーメッセージが不明
+  瞭になる
+  // 改善案: catchを追加
+  const result = await Promise.any([cardsReached, showdown, controlsReady])
+    .catch(() => { throw new Error('Game state timeout: no phase transition detected'); });
+  2. セレクターパターンの重複 (e2e/game-layout.spec.ts, e2e/test-id-attributes.spec.ts)
+    - [data-testid^="role-badge-"] が2ファイルでハードコード。constants.tsに抽出すべき
+  3. プレイヤーID抽出のフラジリティ (e2e/helpers.ts:32)
+    - testId.replace('player-', '') は:not()セレクターに依存。正規表現のほうが安全
+  const match = testId.match(/^player-(.+)$/);
+  const id = match?.[1];
+
+  軽度
+
+  4. 定数化されていないハードコード値
+    - ロールバッジ数 3 (game-layout.spec.ts:29)
+    - コミュニティカードスロット数 5 (test-id-attributes.spec.ts:41)
+    - ヒューマンプレイヤーのカード枚数 2 (card-display.spec.ts:22)
+    - opacity値 '0.5' (player-controls.spec.ts)
+  5. RIVER_CARD_COUNT + 1のマジックナンバー (e2e/game-flow.spec.ts:40)
+    - 到達不可能なカード枚数を指定してshowdownを強制する意図。コメントはあるが、意図が暗黙的
+  6. ビューポートサイズのハードコード (idle-screen.spec.ts)
+    - testInfo.project.use.viewport!で取得しているが、playwright.config.tsの1280x720と暗黙的に結合
 
 
 

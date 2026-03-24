@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { getViewport } from './helpers';
 
 test.describe('初期画面（idle画面）', () => {
   test.beforeEach(async ({ page }) => {
@@ -24,7 +25,7 @@ test.describe('初期画面（idle画面）', () => {
     expect(box).not.toBeNull();
 
     if (box) {
-      const viewport = testInfo.project.use.viewport!;
+      const viewport = getViewport(testInfo);
       expect(box.width).toBeGreaterThan(0);
       expect(box.height).toBeGreaterThan(0);
       expect(box.x).toBeGreaterThanOrEqual(0);

@@ -7,6 +7,9 @@ import {
   TESTID_COMMUNITY_CARDS,
   TESTID_ACTION_LOGS,
   TESTID_CONTROLS,
+  ROLE_BADGE_SELECTOR,
+  ROLE_BADGE_COUNT,
+  COMMUNITY_CARD_SLOT_COUNT,
 } from './constants';
 import { startGame, waitForControlsReady } from './helpers';
 
@@ -38,7 +41,7 @@ test.describe('テスト用セレクター（data-testid）の検証', () => {
       const communityCards = page.getByTestId(TESTID_COMMUNITY_CARDS);
       await expect(communityCards).toBeVisible();
       const slots = communityCards.locator('> div');
-      await expect(slots).toHaveCount(5);
+      await expect(slots).toHaveCount(COMMUNITY_CARD_SLOT_COUNT);
     });
   });
 
@@ -61,8 +64,8 @@ test.describe('テスト用セレクター（data-testid）の検証', () => {
     });
 
     test('ロールが割り当てられたプレイヤーにrole-badge-{id}のdata-testidが存在する', async ({ page }) => {
-      const roleBadges = page.locator('[data-testid^="role-badge-"]');
-      await expect(roleBadges).toHaveCount(3);
+      const roleBadges = page.locator(ROLE_BADGE_SELECTOR);
+      await expect(roleBadges).toHaveCount(ROLE_BADGE_COUNT);
 
       const badgeTexts = await roleBadges.allTextContents();
       const validRoles = ['D', 'SB', 'BB'];

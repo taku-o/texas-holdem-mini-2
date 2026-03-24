@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { TESTID_CONTROLS } from './constants';
+import { TESTID_CONTROLS, DISABLED_OPACITY } from './constants';
 import { findPlayerIds, startGame, waitForControlsReady } from './helpers';
 
 test.describe('プレイヤー操作', () => {
@@ -27,8 +27,8 @@ test.describe('プレイヤー操作', () => {
         return { opacity: style.opacity, pointerEvents: style.pointerEvents };
       });
       expect(
-        opacity === '0.5' || pointerEvents === 'none',
-        `Expected opacity=0.5 or pointer-events=none, got opacity=${opacity}, pointer-events=${pointerEvents}`,
+        opacity === DISABLED_OPACITY || pointerEvents === 'none',
+        `Expected opacity=${DISABLED_OPACITY} or pointer-events=none, got opacity=${opacity}, pointer-events=${pointerEvents}`,
       ).toBe(true);
     }).toPass();
   });
