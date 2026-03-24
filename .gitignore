@@ -12,6 +12,13 @@ Thumbs.db
 # Node
 node_modules/
 
+# Build
+/dist/
+
+# Playwright
+/test-results/
+/playwright-report/
+
 # Claude Code
 .claude/worktrees/
 
@@ -23,4 +30,3 @@ node_modules/
 # Misc
 .env
 .env.local
-

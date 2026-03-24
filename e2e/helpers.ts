@@ -1,0 +1,123 @@
+import type { Page, TestInfo } from '@playwright/test';
+import { expect } from '@playwright/test';
+import {
+  PLAYER_CONTAINER_SELECTOR,
+  HUMAN_PLAYER_LABEL,
+  TESTID_POKER_TABLE,
+  TESTID_COMMUNITY_CARDS,
+  TESTID_CONTROLS,
+  CARD_FACE_UP_SELECTOR,
+  SHOWDOWN_PHASE_TEXT,
+} from './constants';
+
+export interface PlayerIds {
+  humanId: string;
+  cpuIds: string[];
+}
+
+export const PLAYER_ID_PATTERN = /^player-(?!cards-)(.+)$/;
+
+// 最大ベッティングラウンド数（CPU最大4人 × 各フェーズのアクション回数を考慮）
+const MAX_ADVANCE_ROUNDS = 20;
+
+export async function findPlayerIds(page: Page): Promise<PlayerIds> {
+  const players = page.locator(PLAYER_CONTAINER_SELECTOR);
+  const results = await players.evaluateAll(elements =>
+    elements.map(el => ({
+      testId: el.getAttribute('data-testid'),
+      text: el.textContent,
+    }))
+  );
+
+  let humanId: string | null = null;
+  const cpuIds: string[] = [];
+
+  for (const { testId, text } of results) {
+    if (!testId) continue;
+    const match = testId.match(PLAYER_ID_PATTERN);
+    if (!match) {
+      throw new Error(`Unexpected testId format: "${testId}" does not match player-{id} pattern`);
+    }
+    const id = match[1];
+    if (text?.includes(HUMAN_PLAYER_LABEL)) {
+      humanId = id;
+    } else {
+      cpuIds.push(id);
+    }
+  }
+
+  if (!humanId) {
+    throw new Error(`Human player not found: no element contains "${HUMAN_PLAYER_LABEL}"`);
+  }
+
+  return { humanId, cpuIds };
+}
+
+export async function startGame(page: Page): Promise<void> {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Start Game' }).click();
+  await expect(page.getByTestId(TESTID_POKER_TABLE)).toBeVisible();
+}
+
+// CPU行動遅延1000ms × 最大4人 + フェーズ遷移 = 最大約10秒
+const PHASE_WAIT_TIMEOUT = 15000;
+
+export async function waitForControlsReady(page: Page): Promise<void> {
+  await expect(page.getByTestId(TESTID_CONTROLS)).not.toHaveCSS('pointer-events', 'none', { timeout: PHASE_WAIT_TIMEOUT });
+}
+
+export function getCommunityFaceUpCards(page: Page) {
+  return page.getByTestId(TESTID_COMMUNITY_CARDS).locator(CARD_FACE_UP_SELECTOR);
+}
+
+export function getViewport(testInfo: TestInfo): { width: number; height: number } {
+  const viewport = testInfo.project.use.viewport;
+  if (!viewport) {
+    throw new Error('Viewport is not configured in playwright.config.ts');
+  }
+  return viewport;
+}
+
+type PhaseResult = 'cards' | 'showdown';
+
+/**
+ * ヒューマンのアクションを繰り返し実行し、目標のコミュニティカード枚数到達かショーダウンまで進行する。
+ * ベッティングラウンドが複数回（CPUのレイズ等）発生するケースに対応。
+ */
+export async function advanceToPhaseOrShowdown(
+  page: Page,
+  targetCardCount: number,
+): Promise<PhaseResult> {
+  const communityCards = getCommunityFaceUpCards(page);
+  const controls = page.getByTestId(TESTID_CONTROLS);
+
+  // フェーズテキスト「showdown」の表示で検出（ポット$0のみでは開始前・ブラインド投入前の誤検出リスクがある）
+  const phaseIndicator = page.getByText(SHOWDOWN_PHASE_TEXT);
+
+  for (let round = 0; round < MAX_ADVANCE_ROUNDS; round++) {
+    const cardsReached = expect(communityCards).toHaveCount(targetCardCount, { timeout: PHASE_WAIT_TIMEOUT })
+      .then(() => 'cards' as const);
+    const showdown = expect(phaseIndicator).toBeVisible({ timeout: PHASE_WAIT_TIMEOUT })
+      .then(() => 'showdown' as const);
+    // pointer-events が none でないことで判定（opacity チェックより確実）
+    const controlsReady = expect(controls).not.toHaveCSS('pointer-events', 'none', { timeout: PHASE_WAIT_TIMEOUT })
+      .then(() => 'controls' as const);
+
+    const result = await Promise.any([cardsReached, showdown, controlsReady])
+      .catch((err: unknown) => {
+        const reasons = err instanceof AggregateError ? err.errors.map(String).join('; ') : String(err);
+        throw new Error(`Game state timeout: no phase transition detected (${reasons})`);
+      });
+
+    if (result === 'cards') return 'cards';
+    if (result === 'showdown') return 'showdown';
+
+    const checkCallBtn = page.getByRole('button', { name: /Check|Call/ });
+    await checkCallBtn.click();
+
+    // アクション実行後、コントロールが無効化されるのを待つ（次のループで誤検知しないため）
+    await expect(controls).toHaveCSS('pointer-events', 'none', { timeout: PHASE_WAIT_TIMEOUT });
+  }
+
+  throw new Error(`advanceToPhaseOrShowdown: exceeded maximum ${MAX_ADVANCE_ROUNDS} rounds without reaching target phase or showdown`);
+}
