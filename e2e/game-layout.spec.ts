@@ -1,11 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { PLAYER_COUNT, PLAYER_CONTAINER_SELECTOR } from './constants';
+import { startGame } from './helpers';
 
 test.describe('ゲーム画面レイアウト', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await page.getByRole('button', { name: 'Start Game' }).click();
-    await expect(page.getByTestId('poker-table')).toBeVisible();
+    await startGame(page);
   });
 
   test('プレイヤー情報要素が5つ表示される (3.1)', async ({ page }) => {

@@ -1,11 +1,11 @@
 import { test, expect } from '@playwright/test';
 import { PLAYER_COUNT, PLAYER_CONTAINER_SELECTOR } from './constants';
+import { startGame, waitForControlsReady } from './helpers';
 
 test.describe('テスト用セレクター（data-testid）の検証', () => {
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await page.getByRole('button', { name: 'Start Game' }).click();
+    await startGame(page);
   });
 
   test.describe('2.1 App.tsx + Table.tsx のdata-testid', () => {
@@ -65,8 +65,7 @@ test.describe('テスト用セレクター（data-testid）の検証', () => {
 
     test('アクションを実行したプレイヤーにaction-badge-{id}のdata-testidが存在する', async ({ page }) => {
       // コントロールが有効になるまで待機してからFoldを実行
-      const controls = page.getByTestId('controls');
-      await expect(controls).not.toHaveCSS('opacity', '0.5', { timeout: 15000 });
+      await waitForControlsReady(page);
       await page.getByRole('button', { name: 'Fold' }).click();
 
       const humanActionBadge = page.getByTestId('action-badge-p1');

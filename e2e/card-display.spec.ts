@@ -1,48 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { PLAYER_CONTAINER_SELECTOR, HUMAN_PLAYER_LABEL } from './constants';
-
-interface PlayerIds {
-  humanId: string;
-  cpuIds: string[];
-}
-
-async function findPlayerIds(page: import('@playwright/test').Page): Promise<PlayerIds> {
-  const players = page.locator(PLAYER_CONTAINER_SELECTOR);
-  const results = await players.evaluateAll(elements =>
-    elements.map(el => ({
-      testId: el.getAttribute('data-testid'),
-      text: el.textContent,
-    }))
-  );
-
-  let humanId: string | null = null;
-  const cpuIds: string[] = [];
-
-  for (const { testId, text } of results) {
-    if (!testId) continue;
-    const id = testId.replace('player-', '');
-    if (text?.includes(HUMAN_PLAYER_LABEL)) {
-      humanId = id;
-    } else {
-      cpuIds.push(id);
-    }
-  }
-
-  if (!humanId) {
-    throw new Error(`Human player not found: no element contains "${HUMAN_PLAYER_LABEL}"`);
-  }
-
-  return { humanId, cpuIds };
-}
+import { findPlayerIds, startGame } from './helpers';
 
 test.describe('カード表示', () => {
   let humanId: string;
   let cpuIds: string[];
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await page.getByRole('button', { name: 'Start Game' }).click();
-    await expect(page.getByTestId('poker-table')).toBeVisible();
+    await startGame(page);
     const playerIds = await findPlayerIds(page);
     humanId = playerIds.humanId;
     cpuIds = playerIds.cpuIds;
