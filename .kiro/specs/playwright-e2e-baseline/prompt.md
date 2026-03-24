@@ -78,8 +78,14 @@ complete task
 commit pr
 
 
-
 takt --task "/kiro:spec-impl playwright-e2e-baseline 3"
+/clear
+/simplify
+
+
+
+
+
 takt --task "/kiro:spec-impl playwright-e2e-baseline 4"
 takt --task "/kiro:spec-impl playwright-e2e-baseline 5"
 takt --task "/kiro:spec-impl playwright-e2e-baseline 6"
