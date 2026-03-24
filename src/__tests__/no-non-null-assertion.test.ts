@@ -32,8 +32,8 @@ describe('non-null assertion 再発防止', () => {
         const line = lines[i]
         // コメント行とimport行はスキップ
         if (line.trimStart().startsWith('//') || line.trimStart().startsWith('*') || line.includes('import ')) continue
-        // 文字列リテラル内のパターンはスキップ
-        if (line.includes("'") && line.match(/['"].*!\..*['"]/)) continue
+        // 文字列リテラル内のパターンはスキップ（シングル/ダブルクォート/テンプレートリテラル）
+        if (/['"`].*!\.[^'"`]*['"`]/.test(line)) continue
 
         if (NON_NULL_ASSERTION_PATTERN.test(line)) {
           violations.push(`Line ${i + 1}: ${line.trim()}`)
