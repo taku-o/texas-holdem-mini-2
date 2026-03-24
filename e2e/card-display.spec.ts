@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { CARD_FACE_UP_SELECTOR } from './constants';
 import { findPlayerIds, startGame } from './helpers';
 
 test.describe('カード表示', () => {
@@ -16,7 +17,7 @@ test.describe('カード表示', () => {
     const cardsContainer = page.getByTestId(`player-cards-${humanId}`);
     await expect(cardsContainer).toBeVisible();
 
-    const faceUpCards = cardsContainer.locator('[data-testid="card-face-up"]');
+    const faceUpCards = cardsContainer.locator(CARD_FACE_UP_SELECTOR);
 
     await expect(faceUpCards).toHaveCount(2);
     for (let i = 0; i < 2; i++) {
@@ -31,7 +32,7 @@ test.describe('カード表示', () => {
       const cardsContainer = page.getByTestId(`player-cards-${cpuId}`);
       await expect(cardsContainer).toBeVisible();
 
-      const faceUpCards = cardsContainer.locator('[data-testid="card-face-up"]');
+      const faceUpCards = cardsContainer.locator(CARD_FACE_UP_SELECTOR);
       await expect(faceUpCards).toHaveCount(0);
     }
   });

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { PLAYER_COUNT, PLAYER_CONTAINER_SELECTOR } from './constants';
+import { PLAYER_COUNT, PLAYER_CONTAINER_SELECTOR, TESTID_POT_DISPLAY, TESTID_POKER_TABLE } from './constants';
 import { startGame } from './helpers';
 
 test.describe('ゲーム画面レイアウト', () => {
@@ -13,7 +13,7 @@ test.describe('ゲーム画面レイアウト', () => {
   });
 
   test('ポット金額テキストが「$」と数値を含む (3.2)', async ({ page }) => {
-    const potDisplay = page.getByTestId('pot-display');
+    const potDisplay = page.getByTestId(TESTID_POT_DISPLAY);
     await expect(potDisplay).toBeVisible();
     await expect(potDisplay).toHaveText(/\$\d/);
   });
@@ -57,7 +57,7 @@ test.describe('ゲーム画面レイアウト', () => {
   });
 
   test('テーブルのBoundingBoxが最低値以上である (3.6)', async ({ page }) => {
-    const pokerTable = page.getByTestId('poker-table');
+    const pokerTable = page.getByTestId(TESTID_POKER_TABLE);
     await expect(pokerTable).toBeVisible();
 
     const box = await pokerTable.boundingBox();

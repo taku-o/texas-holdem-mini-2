@@ -1,5 +1,13 @@
 import { test, expect } from '@playwright/test';
-import { PLAYER_COUNT, PLAYER_CONTAINER_SELECTOR } from './constants';
+import {
+  PLAYER_COUNT,
+  PLAYER_CONTAINER_SELECTOR,
+  TESTID_POKER_TABLE,
+  TESTID_POT_DISPLAY,
+  TESTID_COMMUNITY_CARDS,
+  TESTID_ACTION_LOGS,
+  TESTID_CONTROLS,
+} from './constants';
 import { startGame, waitForControlsReady } from './helpers';
 
 test.describe('テスト用セレクター（data-testid）の検証', () => {
@@ -11,23 +19,23 @@ test.describe('テスト用セレクター（data-testid）の検証', () => {
   test.describe('2.1 App.tsx + Table.tsx のdata-testid', () => {
 
     test('ゲーム画面にaction-logsのdata-testidが存在する', async ({ page }) => {
-      const actionLogs = page.getByTestId('action-logs');
+      const actionLogs = page.getByTestId(TESTID_ACTION_LOGS);
       await expect(actionLogs).toBeAttached();
     });
 
     test('ゲーム画面にpoker-tableのdata-testidが存在する', async ({ page }) => {
-      const pokerTable = page.getByTestId('poker-table');
+      const pokerTable = page.getByTestId(TESTID_POKER_TABLE);
       await expect(pokerTable).toBeVisible();
     });
 
     test('ゲーム画面にpot-displayのdata-testidが存在する', async ({ page }) => {
-      const potDisplay = page.getByTestId('pot-display');
+      const potDisplay = page.getByTestId(TESTID_POT_DISPLAY);
       await expect(potDisplay).toBeVisible();
       await expect(potDisplay).toContainText('Current Pot');
     });
 
     test('ゲーム画面にcommunity-cardsのdata-testidが存在する', async ({ page }) => {
-      const communityCards = page.getByTestId('community-cards');
+      const communityCards = page.getByTestId(TESTID_COMMUNITY_CARDS);
       await expect(communityCards).toBeVisible();
       const slots = communityCards.locator('> div');
       await expect(slots).toHaveCount(5);
@@ -77,12 +85,12 @@ test.describe('テスト用セレクター（data-testid）の検証', () => {
   test.describe('2.3 Controls.tsx のdata-testid', () => {
 
     test('ゲーム画面にcontrolsのdata-testidが存在する', async ({ page }) => {
-      const controls = page.getByTestId('controls');
+      const controls = page.getByTestId(TESTID_CONTROLS);
       await expect(controls).toBeAttached();
     });
 
     test('controlsコンテナ内にFold, Check/Call, Raiseボタンが含まれる', async ({ page }) => {
-      const controls = page.getByTestId('controls');
+      const controls = page.getByTestId(TESTID_CONTROLS);
       await expect(controls.getByRole('button', { name: 'Fold' })).toBeAttached();
       await expect(controls.getByRole('button', { name: /Check|Call/ })).toBeAttached();
       await expect(controls.getByRole('button', { name: /Raise/ })).toBeAttached();
@@ -92,11 +100,11 @@ test.describe('テスト用セレクター（data-testid）の検証', () => {
   test.describe('data-testidの一意性検証', () => {
 
     test('poker-table, pot-display, community-cards, action-logs, controlsが各1つずつ存在する', async ({ page }) => {
-      await expect(page.getByTestId('poker-table')).toHaveCount(1);
-      await expect(page.getByTestId('pot-display')).toHaveCount(1);
-      await expect(page.getByTestId('community-cards')).toHaveCount(1);
-      await expect(page.getByTestId('action-logs')).toHaveCount(1);
-      await expect(page.getByTestId('controls')).toHaveCount(1);
+      await expect(page.getByTestId(TESTID_POKER_TABLE)).toHaveCount(1);
+      await expect(page.getByTestId(TESTID_POT_DISPLAY)).toHaveCount(1);
+      await expect(page.getByTestId(TESTID_COMMUNITY_CARDS)).toHaveCount(1);
+      await expect(page.getByTestId(TESTID_ACTION_LOGS)).toHaveCount(1);
+      await expect(page.getByTestId(TESTID_CONTROLS)).toHaveCount(1);
     });
 
     test('各プレイヤーのdata-testidが一意である', async ({ page }) => {

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { TESTID_CONTROLS } from './constants';
 import { findPlayerIds, startGame, waitForControlsReady } from './helpers';
 
 test.describe('プレイヤー操作', () => {
@@ -12,14 +13,14 @@ test.describe('プレイヤー操作', () => {
   });
 
   test('ターン中のコントロールがpointer-events=noneでない (5.1)', async ({ page }) => {
-    const controls = page.getByTestId('controls');
+    const controls = page.getByTestId(TESTID_CONTROLS);
     await expect(controls).not.toHaveCSS('pointer-events', 'none');
   });
 
   test('非ターン時にopacity=0.5またはpointer-events=noneである (5.2)', async ({ page }) => {
     await page.getByRole('button', { name: 'Fold' }).click();
 
-    const controls = page.getByTestId('controls');
+    const controls = page.getByTestId(TESTID_CONTROLS);
     await expect(async () => {
       const { opacity, pointerEvents } = await controls.evaluate(el => {
         const style = getComputedStyle(el);
