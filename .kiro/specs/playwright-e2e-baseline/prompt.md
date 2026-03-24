@@ -120,7 +120,7 @@ git push origin HEAD
 
 
 
-
+これらのレビュー指摘事項に対応してください。
   中程度
 
   1. advanceToPhaseOrShowdownのAggregateError未処理 (e2e/helpers.ts:87)
@@ -147,6 +147,16 @@ git push origin HEAD
     - 到達不可能なカード枚数を指定してshowdownを強制する意図。コメントはあるが、意図が暗黙的
   6. ビューポートサイズのハードコード (idle-screen.spec.ts)
     - testInfo.project.use.viewport!で取得しているが、playwright.config.tsの1280x720と暗黙的に結合
+
+次の問題に対応してください
+  2. vite.config.tsのimport元変更 (vite.config.ts)
+    - defineConfigのimport元を'vite'から'vitest/config'に変更しているが、vitestはdevDependencyのため本番ビルドには影響しない。ただしvitest未
+  インストール環境でvite buildが失敗する可能性がある。vite.config.tsとvitest.config.tsを分離する方が安全。
+  3. テスト内のハードコード 'player-p1' (e2e/test-id-attributes.spec.ts:61,67)
+    - page.getByTestId('player-p1')やpage.getByTestId('player-cards-p1')でp1がハードコードされている。ヒューマンプレイヤーのIDが常にp1である
+  前提。ゲームロジック上IDが変わった場合にテストが壊れる。findPlayerIdsヘルパーで動的に取得するか、定数化すべき。
+
+
 
 
 

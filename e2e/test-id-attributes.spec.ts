@@ -11,7 +11,7 @@ import {
   ROLE_BADGE_COUNT,
   COMMUNITY_CARD_SLOT_COUNT,
 } from './constants';
-import { startGame, waitForControlsReady } from './helpers';
+import { findPlayerIds, startGame, waitForControlsReady } from './helpers';
 
 test.describe('テスト用セレクター（data-testid）の検証', () => {
 
@@ -46,9 +46,15 @@ test.describe('テスト用セレクター（data-testid）の検証', () => {
   });
 
   test.describe('2.2 Player.tsx のdata-testid', () => {
+    let humanId: string;
+
+    test.beforeEach(async ({ page }) => {
+      const playerIds = await findPlayerIds(page);
+      humanId = playerIds.humanId;
+    });
 
     test('各プレイヤーにplayer-{id}のdata-testidが存在する', async ({ page }) => {
-      const humanPlayer = page.getByTestId('player-p1');
+      const humanPlayer = page.getByTestId(`player-${humanId}`);
       await expect(humanPlayer).toBeAttached();
 
       const allPlayers = page.locator(PLAYER_CONTAINER_SELECTOR);
@@ -56,12 +62,25 @@ test.describe('テスト用セレクター（data-testid）の検証', () => {
     });
 
     test('各プレイヤーにplayer-cards-{id}のdata-testidが存在する', async ({ page }) => {
-      const humanCards = page.getByTestId('player-cards-p1');
+      const humanCards = page.getByTestId(`player-cards-${humanId}`);
       await expect(humanCards).toBeAttached();
 
       const allPlayerCards = page.locator('[data-testid^="player-cards-"]');
       await expect(allPlayerCards).toHaveCount(PLAYER_COUNT);
     });
+
+    test('アクションを実行したプレイヤーにaction-badge-{id}のdata-testidが存在する', async ({ page }) => {
+      // コントロールが有効になるまで待機してからFoldを実行
+      await waitForControlsReady(page);
+      await page.getByRole('button', { name: 'Fold' }).click();
+
+      const humanActionBadge = page.getByTestId(`action-badge-${humanId}`);
+      await expect(humanActionBadge).toBeAttached();
+      await expect(humanActionBadge).toHaveText(/fold/i);
+    });
+  });
+
+  test.describe('2.2b RoleBadge のdata-testid', () => {
 
     test('ロールが割り当てられたプレイヤーにrole-badge-{id}のdata-testidが存在する', async ({ page }) => {
       const roleBadges = page.locator(ROLE_BADGE_SELECTOR);
@@ -72,16 +91,6 @@ test.describe('テスト用セレクター（data-testid）の検証', () => {
       for (const text of badgeTexts) {
         expect(validRoles).toContain(text);
       }
-    });
-
-    test('アクションを実行したプレイヤーにaction-badge-{id}のdata-testidが存在する', async ({ page }) => {
-      // コントロールが有効になるまで待機してからFoldを実行
-      await waitForControlsReady(page);
-      await page.getByRole('button', { name: 'Fold' }).click();
-
-      const humanActionBadge = page.getByTestId('action-badge-p1');
-      await expect(humanActionBadge).toBeAttached();
-      await expect(humanActionBadge).toHaveText(/fold/i);
     });
   });
 

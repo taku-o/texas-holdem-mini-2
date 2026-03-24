@@ -1,11 +1,11 @@
-import { describe, test, expect } from 'vitest'
+import { describe, test, expect, beforeAll } from 'vitest'
 import { loadConfigFromFile } from 'vite'
 import type { UserConfig } from 'vite'
 import fs from 'node:fs'
 import path from 'node:path'
 
-async function loadViteConfig(): Promise<UserConfig> {
-  const configPath = path.resolve(__dirname, '../../vite.config.ts')
+async function loadConfig(filename: string): Promise<UserConfig> {
+  const configPath = path.resolve(__dirname, '../../', filename)
   const result = await loadConfigFromFile({ command: 'serve', mode: 'test' }, configPath)
   if (!result) {
     throw new Error(`Failed to load config from ${configPath}`)
@@ -22,14 +22,15 @@ function loadTsconfigApp(): { exclude?: string[] } {
 }
 
 describe('Vitest設定', () => {
-  test('e2eディレクトリがテスト除外パターンに含まれている', async () => {
-    // Given: プロジェクトルートのVite設定を読み込む
-    const config = await loadViteConfig()
+  let vitestConfig: UserConfig
 
-    // When: test.exclude を取得する
-    const excludePatterns = config.test?.exclude
+  beforeAll(async () => {
+    vitestConfig = await loadConfig('vitest.config.ts')
+  })
 
-    // Then: e2eディレクトリが除外されている
+  test('e2eディレクトリがテスト除外パターンに含まれている', () => {
+    const excludePatterns = vitestConfig.test?.exclude
+
     expect(excludePatterns).toBeDefined()
     const hasE2eExclude = excludePatterns!.some(
       (pattern: string) => pattern.includes('e2e'),
@@ -37,19 +38,35 @@ describe('Vitest設定', () => {
     expect(hasE2eExclude).toBe(true)
   })
 
-  test('node_modulesがテスト除外パターンに含まれている', async () => {
-    // Given: プロジェクトルートのVite設定を読み込む
-    const config = await loadViteConfig()
+  test('node_modulesがテスト除外パターンに含まれている', () => {
+    const excludePatterns = vitestConfig.test?.exclude
 
-    // When: test.exclude を取得する
-    const excludePatterns = config.test?.exclude
-
-    // Then: node_modulesが除外されている
     expect(excludePatterns).toBeDefined()
     const hasNodeModulesExclude = excludePatterns!.some(
       (pattern: string) => pattern.includes('node_modules'),
     )
     expect(hasNodeModulesExclude).toBe(true)
+  })
+})
+
+describe('vite.config.ts の設定分離', () => {
+  test('vite.config.tsにtest設定が含まれていない', async () => {
+    // Given: vite.config.tsを読み込む
+    const config = await loadConfig('vite.config.ts')
+
+    // Then: testプロパティが存在しない
+    expect(config.test).toBeUndefined()
+  })
+
+  test('vitest.config.tsがプラグイン定義を重複せずvite.config.tsを参照している', () => {
+    const vitestConfigPath = path.resolve(__dirname, '../../vitest.config.ts')
+    const source = fs.readFileSync(vitestConfigPath, 'utf-8')
+
+    // vitest.config.tsはvite.configをimportして参照すべき
+    expect(source).toMatch(/import\s+.*from\s+['"]\.\/vite\.config['"]/)
+    // プラグインの直接importがないこと（DRY違反の再発防止）
+    expect(source).not.toMatch(/@vitejs\/plugin-react/)
+    expect(source).not.toMatch(/@tailwindcss\/vite/)
   })
 })
 
