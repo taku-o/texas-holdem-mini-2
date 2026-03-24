@@ -50,10 +50,10 @@ test.describe('カード表示', () => {
       await expect(card).toBeVisible();
 
       const box = await card.boundingBox();
-      expect(box).not.toBeNull();
+      if (!box) throw new Error(`Card ${i} bounding box is null`);
 
-      expect(box!.width).toBeGreaterThan(0);
-      expect(box!.height).toBeGreaterThan(0);
+      expect(box.width).toBeGreaterThan(0);
+      expect(box.height).toBeGreaterThan(0);
     }
   });
 });

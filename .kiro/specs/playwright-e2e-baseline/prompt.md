@@ -223,3 +223,50 @@ git push origin HEAD
 
 
 
+
+
+次のレビュー指摘事項に対応してください。
+
+  指摘事項
+
+  1. PLAYER_ID_PATTERN の正規表現が player- のみ（IDが空）にマッチしうる
+
+  e2e/helpers.ts:85 — PLAYER_ID_PATTERN = /^player-(?!cards-)(.+)$/ は .+ なので空にはマッチしないが、単体テスト (e2e-helpers.test.ts:68)
+  で「player- のみにはマッチしない」をテストしているのは良い。問題なし。
+
+  2. box! の non-null assertion が多用されている
+
+  e2e/game-layout.spec.ts:37-40, e2e/idle-screen.spec.ts:25-28 など。expect(box).not.toBeNull()
+  の直後なので実行時には安全だが、TypeScriptの型ガードとしては不十分。Playwrightテストでは一般的なパターンなので許容範囲だが、if (!box)
+  throw パターンにすると型推論が効く。
+
+  重要度: 低
+
+  3. config-contract.spec.ts の import.meta.dirname
+
+  e2e/config-contract.spec.ts:17 — import.meta.dirname はNode.js 21.2+で利用可能。Playwright自体がNode 18+対象のため、Node 18/20環境で
+  undefined になりテストが失敗する可能性がある。__dirname の代わりに new URL('.', import.meta.url).pathname や fileURLToPath
+  を使う方が安全。
+
+  重要度: 中
+
+  4. game-flow.spec.ts のショーダウン後 $0 チェック
+
+  e2e/game-flow.spec.ts:37 — await expect(potDisplay).toContainText('$0') は、ゲームによってはポット分配後に $0
+  以外の状態（例：サイドポットの残金）が表示される可能性はないか？ゲームロジックの仕様次第だが、確認の余地がある。
+
+  重要度: 低（仕様書に明記されている前提に基づいている）
+
+  5. advanceToPhaseOrShowdown で $0 をショーダウン検出に使っている
+
+  e2e/helpers.ts:65 — ポットが $0 になることをショーダウンの判定条件にしているが、ゲーム開始直前やブラインド投入前にも $0
+  になりうる場合、誤検出の可能性がある。フェーズテキストでの検出と組み合わせるとより堅牢。
+
+  重要度: 中
+
+  7. tsconfig.app.json の JSONC パース処理
+
+  src/__tests__/vitest-config.test.ts:20 — コメント除去の正規表現 content.replace(/\/\/.*$/gm, '') は、文字列リテラル内の //
+  も除去してしまう。tsconfigでは通常問題にならないが、堅牢性の観点では jsonc-parser パッケージの使用が望ましい。
+
+

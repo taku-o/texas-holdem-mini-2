@@ -3,6 +3,7 @@ import { loadConfigFromFile } from 'vite'
 import type { UserConfig } from 'vite'
 import fs from 'node:fs'
 import path from 'node:path'
+import { parse as parseJsonc } from 'jsonc-parser'
 
 async function loadConfig(filename: string): Promise<UserConfig> {
   const configPath = path.resolve(__dirname, '../../', filename)
@@ -16,9 +17,7 @@ async function loadConfig(filename: string): Promise<UserConfig> {
 function loadTsconfigApp(): { exclude?: string[] } {
   const configPath = path.resolve(__dirname, '../../tsconfig.app.json')
   const content = fs.readFileSync(configPath, 'utf-8')
-  // tsconfig.json はコメント付きJSON（JSONC）のため、コメントを除去してパースする
-  const stripped = content.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '')
-  return JSON.parse(stripped) as { exclude?: string[] }
+  return parseJsonc(content) as { exclude?: string[] }
 }
 
 describe('Vitest設定', () => {
@@ -30,9 +29,9 @@ describe('Vitest設定', () => {
 
   test('e2eディレクトリがテスト除外パターンに含まれている', () => {
     const excludePatterns = vitestConfig.test?.exclude
+    if (!excludePatterns) throw new Error('vitest config test.exclude is not defined')
 
-    expect(excludePatterns).toBeDefined()
-    const hasE2eExclude = excludePatterns!.some(
+    const hasE2eExclude = excludePatterns.some(
       (pattern: string) => pattern.includes('e2e'),
     )
     expect(hasE2eExclude).toBe(true)
@@ -40,9 +39,9 @@ describe('Vitest設定', () => {
 
   test('node_modulesがテスト除外パターンに含まれている', () => {
     const excludePatterns = vitestConfig.test?.exclude
+    if (!excludePatterns) throw new Error('vitest config test.exclude is not defined')
 
-    expect(excludePatterns).toBeDefined()
-    const hasNodeModulesExclude = excludePatterns!.some(
+    const hasNodeModulesExclude = excludePatterns.some(
       (pattern: string) => pattern.includes('node_modules'),
     )
     expect(hasNodeModulesExclude).toBe(true)
@@ -79,11 +78,11 @@ describe('tsconfig.app.json テストファイル除外', () => {
     const excludePatterns = tsconfig.exclude
 
     // Then: テストファイルパターンが除外されている
-    expect(excludePatterns).toBeDefined()
-    const hasTestExclude = excludePatterns!.some(
+    if (!excludePatterns) throw new Error('tsconfig.app.json exclude is not defined')
+    const hasTestExclude = excludePatterns.some(
       (pattern: string) => pattern.includes('*.test.ts'),
     )
-    const hasTestDirExclude = excludePatterns!.some(
+    const hasTestDirExclude = excludePatterns.some(
       (pattern: string) => pattern.includes('__tests__'),
     )
     expect(hasTestExclude).toBe(true)

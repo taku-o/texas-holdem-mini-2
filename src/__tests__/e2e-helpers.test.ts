@@ -53,8 +53,8 @@ describe('プレイヤーID抽出パターン', () => {
 
     const match = testId.match(PLAYER_ID_PATTERN)
 
-    expect(match).not.toBeNull()
-    expect(match![1]).toBe('p1')
+    if (!match) throw new Error(`Expected "${testId}" to match PLAYER_ID_PATTERN`)
+    expect(match[1]).toBe('p1')
   })
 
   test('複合IDを持つ player-{id} 形式からIDを抽出できる', () => {
@@ -62,8 +62,8 @@ describe('プレイヤーID抽出パターン', () => {
 
     const match = testId.match(PLAYER_ID_PATTERN)
 
-    expect(match).not.toBeNull()
-    expect(match![1]).toBe('cpu-2')
+    if (!match) throw new Error(`Expected "${testId}" to match PLAYER_ID_PATTERN`)
+    expect(match[1]).toBe('cpu-2')
   })
 
   test('player- プレフィックスがない文字列にはマッチしない', () => {

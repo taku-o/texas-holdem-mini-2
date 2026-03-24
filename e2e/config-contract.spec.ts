@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 test.describe('Playwright設定契約検証', () => {
   test('playwright.config.tsでforbidOnlyがCI環境変数に連動している', async ({}, testInfo) => {
@@ -13,7 +14,8 @@ test.describe('Playwright設定契約検証', () => {
   });
 
   test('.gitignoreにPlaywright生成物が登録されている', async () => {
-    const gitignorePath = resolve(import.meta.dirname, '..', '.gitignore');
+    const currentDir = fileURLToPath(new URL('.', import.meta.url));
+    const gitignorePath = resolve(currentDir, '..', '.gitignore');
     const content = readFileSync(gitignorePath, 'utf-8');
 
     expect(content).toContain('test-results/');

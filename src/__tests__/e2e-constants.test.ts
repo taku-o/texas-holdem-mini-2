@@ -11,6 +11,7 @@ import {
   HUMAN_HAND_CARD_COUNT,
   DISABLED_OPACITY,
   UNREACHABLE_CARD_COUNT,
+  SHOWDOWN_PHASE_TEXT,
   GAME_FLOW_TEST_TIMEOUT,
 } from '../../e2e/constants'
 
@@ -38,6 +39,12 @@ describe('E2E定数: 新規追加定数', () => {
   test('UNREACHABLE_CARD_COUNTがRIVER_CARD_COUNT + 1である', () => {
     expect(UNREACHABLE_CARD_COUNT).toBe(RIVER_CARD_COUNT + 1)
     expect(UNREACHABLE_CARD_COUNT).toBe(6)
+  })
+})
+
+describe('E2E定数: SHOWDOWN_PHASE_TEXT', () => {
+  test('SHOWDOWN_PHASE_TEXTが定義されている', () => {
+    expect(SHOWDOWN_PHASE_TEXT).toBe('showdown')
   })
 })
 

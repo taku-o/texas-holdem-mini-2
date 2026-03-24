@@ -21,4 +21,6 @@ export const DISABLED_OPACITY = '0.5';
 // showdownを強制するための到達不可能なカード枚数
 export const UNREACHABLE_CARD_COUNT = RIVER_CARD_COUNT + 1;
 
+export const SHOWDOWN_PHASE_TEXT = 'showdown';
+
 export const GAME_FLOW_TEST_TIMEOUT = 120_000;

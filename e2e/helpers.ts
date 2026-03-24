@@ -4,10 +4,10 @@ import {
   PLAYER_CONTAINER_SELECTOR,
   HUMAN_PLAYER_LABEL,
   TESTID_POKER_TABLE,
-  TESTID_POT_DISPLAY,
   TESTID_COMMUNITY_CARDS,
   TESTID_CONTROLS,
   CARD_FACE_UP_SELECTOR,
+  SHOWDOWN_PHASE_TEXT,
 } from './constants';
 
 export interface PlayerIds {
@@ -88,14 +88,16 @@ export async function advanceToPhaseOrShowdown(
   page: Page,
   targetCardCount: number,
 ): Promise<PhaseResult> {
-  const potDisplay = page.getByTestId(TESTID_POT_DISPLAY);
   const communityCards = getCommunityFaceUpCards(page);
   const controls = page.getByTestId(TESTID_CONTROLS);
+
+  // フェーズテキスト「showdown」の表示で検出（ポット$0のみでは開始前・ブラインド投入前の誤検出リスクがある）
+  const phaseIndicator = page.getByText(SHOWDOWN_PHASE_TEXT);
 
   for (let round = 0; round < MAX_ADVANCE_ROUNDS; round++) {
     const cardsReached = expect(communityCards).toHaveCount(targetCardCount, { timeout: PHASE_WAIT_TIMEOUT })
       .then(() => 'cards' as const);
-    const showdown = expect(potDisplay).toContainText('$0', { timeout: PHASE_WAIT_TIMEOUT })
+    const showdown = expect(phaseIndicator).toBeVisible({ timeout: PHASE_WAIT_TIMEOUT })
       .then(() => 'showdown' as const);
     // pointer-events が none でないことで判定（opacity チェックより確実）
     const controlsReady = expect(controls).not.toHaveCSS('pointer-events', 'none', { timeout: PHASE_WAIT_TIMEOUT })

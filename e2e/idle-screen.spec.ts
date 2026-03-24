@@ -22,15 +22,15 @@ test.describe('初期画面（idle画面）', () => {
     await expect(button).toBeVisible();
 
     const box = await button.boundingBox();
-    expect(box).not.toBeNull();
+    if (!box) throw new Error('Start Game button bounding box is null');
 
     const viewport = getViewport(testInfo);
-    expect(box!.width).toBeGreaterThan(0);
-    expect(box!.height).toBeGreaterThan(0);
-    expect(box!.x).toBeGreaterThanOrEqual(0);
-    expect(box!.y).toBeGreaterThanOrEqual(0);
-    expect(box!.x + box!.width).toBeLessThanOrEqual(viewport.width);
-    expect(box!.y + box!.height).toBeLessThanOrEqual(viewport.height);
+    expect(box.width).toBeGreaterThan(0);
+    expect(box.height).toBeGreaterThan(0);
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.y).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
+    expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
   });
 
   test('初期画面のスクリーンショットベースライン', async ({ page }) => {
