@@ -55,7 +55,7 @@ function App() {
     <div className="min-h-[100dvh] w-full p-4 sm:p-8 flex flex-col items-center justify-between overflow-x-hidden relative">
       
       {/* Logs at top */}
-      <div className="absolute top-4 left-4 z-50 pointer-events-none opacity-70 text-xs sm:text-sm">
+      <div data-testid="action-logs" className="absolute top-4 left-4 z-50 pointer-events-none opacity-70 text-xs sm:text-sm">
          {state.logs.slice(0, 3).map((log, idx) => (
             <div key={idx} className={idx === 0 ? "text-white font-bold" : "text-white/50"}>{log}</div>
          ))}

@@ -70,13 +70,15 @@ takt --task "/kiro:spec-impl playwright-e2e-baseline 1"
 complete task 
 commit pr
 
-
-
-
-
-
-
 takt --task "/kiro:spec-impl playwright-e2e-baseline 2"
+/simplify
+テストを修復してください
+
+complete task 
+commit pr
+
+
+
 takt --task "/kiro:spec-impl playwright-e2e-baseline 3"
 takt --task "/kiro:spec-impl playwright-e2e-baseline 4"
 takt --task "/kiro:spec-impl playwright-e2e-baseline 5"

@@ -13,7 +13,7 @@ export const Controls: React.FC<ControlsProps> = ({
   onFold, onCheckCall, onRaise, callAmount, minRaise, isTurn
 }) => {
   return (
-    <div className={`glass-panel p-1.5 sm:p-2 flex gap-1.5 sm:gap-2 shadow-2xl animate-[fade-in-up_0.6s_forwards] border-white/30 bg-black/40 transition-opacity ${!isTurn ? 'opacity-50 pointer-events-none' : ''}`}>
+    <div data-testid="controls" className={`glass-panel p-1.5 sm:p-2 flex gap-1.5 sm:gap-2 shadow-2xl animate-[fade-in-up_0.6s_forwards] border-white/30 bg-black/40 transition-opacity ${!isTurn ? 'opacity-50 pointer-events-none' : ''}`}>
       <button onClick={onFold} className="glass-button px-3 sm:px-4 h-8 sm:h-10 border-0 bg-red-500/20 text-red-100 hover:bg-red-500/40 text-xs sm:text-sm font-semibold rounded-xl">
         Fold
       </button>

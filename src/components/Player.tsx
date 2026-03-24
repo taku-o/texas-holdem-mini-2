@@ -11,10 +11,10 @@ interface PlayerProps {
 
 export const Player: React.FC<PlayerProps> = ({ player, positionClass, isCurrentTurn, revealCards = false }) => {
   return (
-    <div className={`absolute ${positionClass} flex flex-col items-center gap-2 transition-all duration-300 ${!player.isActive ? 'opacity-50' : ''}`}>
+    <div data-testid={`player-${player.id}`} className={`absolute ${positionClass} flex flex-col items-center gap-2 transition-all duration-300 ${!player.isActive ? 'opacity-50' : ''}`}>
       
       {/* Cards */}
-      <div className="flex -space-x-4 mb-1 z-10 mt-1">
+      <div data-testid={`player-cards-${player.id}`} className="flex -space-x-4 mb-1 z-10 mt-1">
         {player.cards.map((card, i) => (
           <div key={i} className="transform hover:-translate-y-2 transition-transform shadow-lg rounded-lg">
             <Card card={card} faceUp={player.isHuman || player.action === 'all-in' || revealCards} />
@@ -30,14 +30,14 @@ export const Player: React.FC<PlayerProps> = ({ player, positionClass, isCurrent
       <div className={`glass-panel p-2 sm:p-3 min-w-[100px] sm:min-w-[120px] text-center relative ${isCurrentTurn ? 'ring-2 ring-yellow-400 border-yellow-400/50' : ''}`}>
         {/* Role Badge */}
         {player.role && (
-          <div className="absolute -top-3 -right-3 w-6 h-6 rounded-full bg-white text-green-900 text-xs font-bold flex items-center justify-center shadow-md">
+          <div data-testid={`role-badge-${player.id}`} className="absolute -top-3 -right-3 w-6 h-6 rounded-full bg-white text-green-900 text-xs font-bold flex items-center justify-center shadow-md">
             {player.role === 'dealer' ? 'D' : player.role === 'sb' ? 'SB' : 'BB'}
           </div>
         )}
         
         {/* Action Badge */}
         {player.action && (
-          <div className="absolute -top-3 -left-3 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-black/60 text-white backdrop-blur-md shadow-md">
+          <div data-testid={`action-badge-${player.id}`} className="absolute -top-3 -left-3 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-black/60 text-white backdrop-blur-md shadow-md">
             {player.action}
           </div>
         )}
