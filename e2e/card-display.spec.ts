@@ -52,10 +52,8 @@ test.describe('カード表示', () => {
       const box = await card.boundingBox();
       expect(box).not.toBeNull();
 
-      if (box) {
-        expect(box.width).toBeGreaterThan(0);
-        expect(box.height).toBeGreaterThan(0);
-      }
+      expect(box!.width).toBeGreaterThan(0);
+      expect(box!.height).toBeGreaterThan(0);
     }
   });
 });

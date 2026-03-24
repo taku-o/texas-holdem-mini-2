@@ -17,6 +17,9 @@ export interface PlayerIds {
 
 export const PLAYER_ID_PATTERN = /^player-(.+)$/;
 
+// 最大ベッティングラウンド数（CPU最大4人 × 各フェーズのアクション回数を考慮）
+const MAX_ADVANCE_ROUNDS = 20;
+
 export async function findPlayerIds(page: Page): Promise<PlayerIds> {
   const players = page.locator(PLAYER_CONTAINER_SELECTOR);
   const results = await players.evaluateAll(elements =>
@@ -89,7 +92,7 @@ export async function advanceToPhaseOrShowdown(
   const communityCards = getCommunityFaceUpCards(page);
   const controls = page.getByTestId(TESTID_CONTROLS);
 
-  for (;;) {
+  for (let round = 0; round < MAX_ADVANCE_ROUNDS; round++) {
     const cardsReached = expect(communityCards).toHaveCount(targetCardCount, { timeout: PHASE_WAIT_TIMEOUT })
       .then(() => 'cards' as const);
     const showdown = expect(potDisplay).toContainText('$0', { timeout: PHASE_WAIT_TIMEOUT })
@@ -113,4 +116,6 @@ export async function advanceToPhaseOrShowdown(
     // アクション実行後、コントロールが無効化されるのを待つ（次のループで誤検知しないため）
     await expect(controls).toHaveCSS('pointer-events', 'none', { timeout: PHASE_WAIT_TIMEOUT });
   }
+
+  throw new Error(`advanceToPhaseOrShowdown: exceeded maximum ${MAX_ADVANCE_ROUNDS} rounds without reaching target phase or showdown`);
 }

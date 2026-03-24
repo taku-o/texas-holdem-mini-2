@@ -157,10 +157,33 @@ git push origin HEAD
   前提。ゲームロジック上IDが変わった場合にテストが壊れる。findPlayerIdsヘルパーで動的に取得するか、定数化すべき。
 
 
+次のレビュー指摘事項に対応してください
+  指摘事項
 
+  中程度
 
+  1. advanceToPhaseOrShowdown の無限ループリスク (e2e/helpers.ts:103)
+    - for (;;) ループに明示的な上限がない。Promise.any の timeout に依存しているが、controlsReady が毎回勝ってしまう（コントロールが有効→ク
+  リック→無効→有効…のサイクル）場合、ゲームがフェーズ進行しないまま延々とCheck/Callを繰り返す可能性がある
+    - テスト自体のタイムアウト（120秒）で最終的には止まるが、エラーメッセージが不明瞭になる
+    - 提案: ループ回数の上限（例: 最大20ラウンド）を設けて、超過時にわかりやすいエラーを投げる
 
+  軽度
 
+  4. test.setTimeout(120_000) のハードコード (e2e/game-flow.spec.ts:22)
+    - 120秒は長いが、ゲームフロー全体の通過には必要。定数化するとメンテしやすい
+  5. config-contract.spec.ts の条件分岐 (e2e/config-contract.spec.ts:8-10)
+    - if (!process.env.CI)
+  でCIでない場合のみ検証。CI環境では何も検証しないため、本来の意図（CIでforbidOnlyがtrueになること）が検証できていない
+  // 改善案: 両方の分岐を検証
+  if (process.env.CI) {
+    expect(config.forbidOnly).toBe(true);
+  } else {
+    expect(config.forbidOnly).toBe(false);
+  }
+  6. getViewport のnullチェック後のif文 (e2e/idle-screen.spec.ts:29, e2e/game-layout.spec.ts:48)
+    - expect(box).not.toBeNull() で検証した後に if (box) でガードしている。TypeScript的に必要だが、box! でnon-null
+  assertionするか、テスト的にはnullの場合にすでにfailしているので if 内のアサーションが実行されないリスクはない
 
 
 

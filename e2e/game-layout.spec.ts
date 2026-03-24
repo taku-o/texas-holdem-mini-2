@@ -47,12 +47,10 @@ test.describe('ゲーム画面レイアウト', () => {
       const box = await player.boundingBox();
       expect(box).not.toBeNull();
 
-      if (box) {
-        expect(box.x).toBeGreaterThanOrEqual(0);
-        expect(box.y).toBeGreaterThanOrEqual(0);
-        expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
-        expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
-      }
+      expect(box!.x).toBeGreaterThanOrEqual(0);
+      expect(box!.y).toBeGreaterThanOrEqual(0);
+      expect(box!.x + box!.width).toBeLessThanOrEqual(viewport.width);
+      expect(box!.y + box!.height).toBeLessThanOrEqual(viewport.height);
     }
   });
 
@@ -63,10 +61,8 @@ test.describe('ゲーム画面レイアウト', () => {
     const box = await pokerTable.boundingBox();
     expect(box).not.toBeNull();
 
-    if (box) {
-      expect(box.width).toBeGreaterThan(0);
-      expect(box.height).toBeGreaterThan(0);
-    }
+    expect(box!.width).toBeGreaterThan(0);
+    expect(box!.height).toBeGreaterThan(0);
   });
 
   test('ゲーム画面のスクリーンショットベースライン (3.7)', async ({ page }) => {

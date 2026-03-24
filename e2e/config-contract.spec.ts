@@ -5,7 +5,9 @@ import { resolve } from 'node:path';
 test.describe('Playwright設定契約検証', () => {
   test('playwright.config.tsでforbidOnlyがCI環境変数に連動している', async ({}, testInfo) => {
     const config = testInfo.config;
-    if (!process.env.CI) {
+    if (process.env.CI) {
+      expect(config.forbidOnly).toBe(true);
+    } else {
       expect(config.forbidOnly).toBe(false);
     }
   });

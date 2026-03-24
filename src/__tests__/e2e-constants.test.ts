@@ -11,6 +11,7 @@ import {
   HUMAN_HAND_CARD_COUNT,
   DISABLED_OPACITY,
   UNREACHABLE_CARD_COUNT,
+  GAME_FLOW_TEST_TIMEOUT,
 } from '../../e2e/constants'
 
 describe('E2E定数: 新規追加定数', () => {
@@ -32,12 +33,17 @@ describe('E2E定数: 新規追加定数', () => {
 
   test('DISABLED_OPACITYが非ターン時の透明度文字列である', () => {
     expect(DISABLED_OPACITY).toBe('0.5')
-    expect(typeof DISABLED_OPACITY).toBe('string')
   })
 
   test('UNREACHABLE_CARD_COUNTがRIVER_CARD_COUNT + 1である', () => {
     expect(UNREACHABLE_CARD_COUNT).toBe(RIVER_CARD_COUNT + 1)
     expect(UNREACHABLE_CARD_COUNT).toBe(6)
+  })
+})
+
+describe('E2E定数: GAME_FLOW_TEST_TIMEOUT', () => {
+  test('GAME_FLOW_TEST_TIMEOUTが期待値である', () => {
+    expect(GAME_FLOW_TEST_TIMEOUT).toBe(120_000)
   })
 })
 
