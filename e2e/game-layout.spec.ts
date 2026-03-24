@@ -1,7 +1,5 @@
 import { test, expect } from '@playwright/test';
-
-const PLAYER_COUNT = 5;
-const PLAYER_CONTAINER_SELECTOR = '[data-testid^="player-"]:not([data-testid^="player-cards-"])';
+import { PLAYER_COUNT, PLAYER_CONTAINER_SELECTOR } from './constants';
 
 test.describe('ゲーム画面レイアウト', () => {
   test.beforeEach(async ({ page }) => {
