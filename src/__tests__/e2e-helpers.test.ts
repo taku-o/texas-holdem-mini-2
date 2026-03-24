@@ -74,14 +74,12 @@ describe('プレイヤーID抽出パターン', () => {
     expect(match).toBeNull()
   })
 
-  test('player-cards- 形式にはマッチするがIDにcards-プレフィックスが含まれる', () => {
-    // セレクター側で除外されるため、この関数に到達しない前提
+  test('player-cards- 形式にはマッチしない（パターンレベルで除外）', () => {
     const testId = 'player-cards-p1'
 
     const match = testId.match(PLAYER_ID_PATTERN)
 
-    expect(match).not.toBeNull()
-    expect(match![1]).toBe('cards-p1')
+    expect(match).toBeNull()
   })
 
   test('中間に player- を含む文字列にはマッチしない（先頭一致のみ）', () => {

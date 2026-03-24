@@ -186,5 +186,40 @@ git push origin HEAD
   assertionするか、テスト的にはnullの場合にすでにfailしているので if 内のアサーションが実行されないリスクはない
 
 
+次のレビュー指摘事項に対応してください。
+  中程度
+
+  1. playwright.config.tsのdevices['Desktop Chrome']がviewportを上書きする可能性
+  - playwright.config.ts:26: ...devices['Desktop Chrome']のスプレッドがuseレベルのviewport: { width: 1280, height: 720
+  }を上書きする可能性がある。Desktop
+  Chromeのdevicesにはviewportが含まれるため、projects内でviewportを明示的に再設定するか、スプレッド順序を確認すべき
+
+  // 現状
+  use: { ...devices['Desktop Chrome'] },
+  // 安全策
+  use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 720 } },
+
+  2. webServer.reuseExistingServerがtrueだが!process.env.CIでない
+  - playwright.config.ts:32: 一般的にCI環境ではreuseExistingServer: !process.env.CIとすることで、CI上では必ず新規サーバーを起動する。現在のt
+  rue固定だと、CI上で既存サーバーがない場合は問題ないが、ポートが使われていた場合に意図しないサーバーに接続する可能性がある
+  - ただし、設計書で「CI/CD環境でのテスト実行設定」は非ゴールと明記されているので、ローカル専用なら許容範囲
+
+  3. PLAYER_ID_PATTERNがplayer-cards-にもマッチする
+  - e2e/helpers.ts:19: /^player-(.+)$/はplayer-cards-p1にもマッチし、IDとしてcards-p1を返す。findPlayerIdsではCSSセレクター側（:not([data-te
+  stid^="player-cards-"])）で除外しているが、パターン自体が意図と乖離している
+  - 単体テストe2e-helpers.test.ts:80でもこの挙動を「セレクター側で除外されるため到達しない前提」とコメントしているが、防御的にパターンを/^pl
+  ayer-(?!cards-)(.+)$/にする方が安全
+
+  軽度
+
+  4. card-display.spec.tsのCPUループが全CPU確認で遅い可能性
+  - e2e/card-display.spec.ts:31-38: 全CPUプレイヤー（最大4人）のカード裏面を確認する。問題ではないが、1人目で代表確認する選択肢もある
+
+  5. tsconfig.node.jsonにvitest.config.tsが含まれていない
+  - tsconfig.node.jsonのincludeにplaywright.config.tsは追加されているが、vitest.config.tsが含まれていない。TypeScriptの型チェックが効かない
+  可能性がある
+
+
+
 
 

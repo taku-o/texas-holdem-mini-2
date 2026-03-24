@@ -15,7 +15,7 @@ export interface PlayerIds {
   cpuIds: string[];
 }
 
-export const PLAYER_ID_PATTERN = /^player-(.+)$/;
+export const PLAYER_ID_PATTERN = /^player-(?!cards-)(.+)$/;
 
 // 最大ベッティングラウンド数（CPU最大4人 × 各フェーズのアクション回数を考慮）
 const MAX_ADVANCE_ROUNDS = 20;
