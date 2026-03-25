@@ -44,4 +44,10 @@ think.
 
 
 
+takt --task "/kiro:spec-impl vitest-deck-tests 1"
+
+
+
+
+
 

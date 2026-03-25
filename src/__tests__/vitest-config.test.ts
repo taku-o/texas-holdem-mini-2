@@ -1,22 +1,10 @@
 import { describe, test, expect, beforeAll } from 'vitest'
-import { loadConfigFromFile } from 'vite'
 import type { UserConfig } from 'vite'
-import fs from 'node:fs'
-import path from 'node:path'
 import { parse as parseJsonc } from 'jsonc-parser'
-
-async function loadConfig(filename: string): Promise<UserConfig> {
-  const configPath = path.resolve(__dirname, '../../', filename)
-  const result = await loadConfigFromFile({ command: 'serve', mode: 'test' }, configPath)
-  if (!result) {
-    throw new Error(`Failed to load config from ${configPath}`)
-  }
-  return result.config
-}
+import { loadConfig, loadProjectFile } from './test-helpers'
 
 function loadTsconfigApp(): { exclude?: string[] } {
-  const configPath = path.resolve(__dirname, '../../tsconfig.app.json')
-  const content = fs.readFileSync(configPath, 'utf-8')
+  const content = loadProjectFile('tsconfig.app.json')
   return parseJsonc(content) as { exclude?: string[] }
 }
 
@@ -50,20 +38,14 @@ describe('Vitest設定', () => {
 
 describe('vite.config.ts の設定分離', () => {
   test('vite.config.tsにtest設定が含まれていない', async () => {
-    // Given: vite.config.tsを読み込む
     const config = await loadConfig('vite.config.ts')
-
-    // Then: testプロパティが存在しない
     expect(config.test).toBeUndefined()
   })
 
   test('vitest.config.tsがプラグイン定義を重複せずvite.config.tsを参照している', () => {
-    const vitestConfigPath = path.resolve(__dirname, '../../vitest.config.ts')
-    const source = fs.readFileSync(vitestConfigPath, 'utf-8')
+    const source = loadProjectFile('vitest.config.ts')
 
-    // vitest.config.tsはvite.configをimportして参照すべき
     expect(source).toMatch(/import\s+.*from\s+['"]\.\/vite\.config['"]/)
-    // プラグインの直接importがないこと（DRY違反の再発防止）
     expect(source).not.toMatch(/@vitejs\/plugin-react/)
     expect(source).not.toMatch(/@tailwindcss\/vite/)
   })
@@ -71,13 +53,9 @@ describe('vite.config.ts の設定分離', () => {
 
 describe('tsconfig.app.json テストファイル除外', () => {
   test('テストファイルがTypeScriptビルド対象から除外されている', () => {
-    // Given: tsconfig.app.json を読み込む
     const tsconfig = loadTsconfigApp()
-
-    // When: exclude パターンを取得する
     const excludePatterns = tsconfig.exclude
 
-    // Then: テストファイルパターンが除外されている
     if (!excludePatterns) throw new Error('tsconfig.app.json exclude is not defined')
     const hasTestExclude = excludePatterns.some(
       (pattern: string) => pattern.includes('*.test.ts'),
