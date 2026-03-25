@@ -43,7 +43,6 @@ think.
   - T-3: 要件1.3と1.4を1タスクにまとめた判断は合理的だが原則からはやや外れる
 
 
-
 takt --task "/kiro:spec-impl vitest-deck-tests 1"
 takt --task "/kiro:spec-impl vitest-deck-tests 2"
 
