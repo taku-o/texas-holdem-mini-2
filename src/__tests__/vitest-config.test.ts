@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeAll } from 'vitest'
 import type { UserConfig } from 'vite'
 import { parse as parseJsonc } from 'jsonc-parser'
-import { loadConfig, loadProjectFile } from './test-helpers'
+import { loadConfig, loadProjectFile, loadPackageJson } from './test-helpers'
 
 function loadTsconfigApp(): { exclude?: string[] } {
   const content = loadProjectFile('tsconfig.app.json')
@@ -13,6 +13,14 @@ describe('Vitest設定', () => {
 
   beforeAll(async () => {
     vitestConfig = await loadConfig('vitest.config.ts')
+  })
+
+  test('グローバル関数が有効化されている', () => {
+    expect(vitestConfig.test?.globals).toBe(true)
+  })
+
+  test('セットアップファイルが設定されている', () => {
+    expect(vitestConfig.test?.setupFiles).toContain('./src/test/setup.ts')
   })
 
   test('e2eディレクトリがテスト除外パターンに含まれている', () => {
@@ -65,5 +73,30 @@ describe('tsconfig.app.json テストファイル除外', () => {
     )
     expect(hasTestExclude).toBe(true)
     expect(hasTestDirExclude).toBe(true)
+  })
+})
+
+describe('Vitest環境設定: npmスクリプト', () => {
+  let scripts: Record<string, string>
+
+  beforeAll(() => {
+    const pkg = loadPackageJson()
+    if (!pkg.scripts) throw new Error('No scripts found in package.json')
+    scripts = pkg.scripts as Record<string, string>
+  })
+
+  test('testスクリプトが単発実行モードである', () => {
+    expect(scripts.test).toBe('vitest run')
+  })
+
+  test('test:watchスクリプトがウォッチモードである', () => {
+    expect(scripts['test:watch']).toBe('vitest')
+  })
+})
+
+describe('Vitest環境設定: セットアップファイル', () => {
+  test('src/test/setup.ts が存在する', () => {
+    const content = loadProjectFile('src/test/setup.ts')
+    expect(content.length).toBeGreaterThan(0)
   })
 })
