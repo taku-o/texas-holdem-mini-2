@@ -88,12 +88,11 @@ describe('各役のrank値とrankName', () => {
   )
 })
 
-const scores = handTestCases.map(({ name, holeCards, communityCards }) => ({
-  name,
-  score: evaluateHand(holeCards, communityCards).score,
-}))
-
 describe('スコアの大小関係', () => {
+  const scores = handTestCases.map(({ holeCards, communityCards }) =>
+    evaluateHand(holeCards, communityCards).score,
+  )
+
   test.each(handTestCases.slice(0, -1).map((current, i) => ({
     stronger: current.name,
     weaker: handTestCases[i + 1].name,
@@ -101,7 +100,7 @@ describe('スコアの大小関係', () => {
   })))(
     '$stronger のスコアが $weaker より大きい',
     ({ index }) => {
-      expect(scores[index].score).toBeGreaterThan(scores[index + 1].score)
+      expect(scores[index]).toBeGreaterThan(scores[index + 1])
     },
   )
 })
@@ -124,19 +123,15 @@ describe('同役キッカー比較', () => {
 })
 
 describe('ホイールストレート', () => {
-  test('ホイールストレートのrankがStraight(5)である', () => {
-    const holeCards = [card('hearts', 'A'), card('diamonds', '2')]
-    const communityCards = [card('clubs', '3'), card('spades', '4'), card('hearts', '5')]
-    const result = evaluateHand(holeCards, communityCards)
+  const wheelHoleCards = [card('hearts', 'A'), card('diamonds', '2')]
+  const wheelCommunityCards = [card('clubs', '3'), card('spades', '4'), card('hearts', '5')]
+  const wheelResult = evaluateHand(wheelHoleCards, wheelCommunityCards)
 
-    expect(result.rank).toBe(HandRank.Straight)
+  test('ホイールストレートのrankがStraightである', () => {
+    expect(wheelResult.rank).toBe(HandRank.Straight)
   })
 
   test('ホイールストレートのスコアが通常ストレート(2-3-4-5-6)より小さい', () => {
-    const wheelResult = evaluateHand(
-      [card('hearts', 'A'), card('diamonds', '2')],
-      [card('clubs', '3'), card('spades', '4'), card('hearts', '5')],
-    )
     const normalResult = evaluateHand(
       [card('hearts', '2'), card('diamonds', '3')],
       [card('clubs', '4'), card('spades', '5'), card('hearts', '6')],
@@ -164,21 +159,12 @@ describe('7枚入力', () => {
   })
 })
 
-// 0枚入力時、rankはHighCard(1)だがrankNameは'High Card'ではなく'None'を返す。
-// これはevaluator.tsの仕様で、カードなしの状態を通常のハイカードと区別するための挙動。
 describe('0枚入力', () => {
-  test('rankがHighCard(1)である', () => {
+  test('rank=HighCard, score=0, rankName=Noneを返す', () => {
     const result = evaluateHand([], [])
+
     expect(result.rank).toBe(HandRank.HighCard)
-  })
-
-  test('scoreが0である', () => {
-    const result = evaluateHand([], [])
     expect(result.score).toBe(0)
-  })
-
-  test('rankNameがNoneである', () => {
-    const result = evaluateHand([], [])
     expect(result.rankName).toBe('None')
   })
 })
