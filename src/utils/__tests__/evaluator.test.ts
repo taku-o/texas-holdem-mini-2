@@ -88,16 +88,12 @@ describe('各役のrank値とrankName', () => {
   )
 })
 
+const scores = handTestCases.map(({ name, holeCards, communityCards }) => ({
+  name,
+  score: evaluateHand(holeCards, communityCards).score,
+}))
+
 describe('スコアの大小関係', () => {
-  let scores: { name: string; score: number }[]
-
-  beforeAll(() => {
-    scores = handTestCases.map(({ name, holeCards, communityCards }) => ({
-      name,
-      score: evaluateHand(holeCards, communityCards).score,
-    }))
-  })
-
   test.each(handTestCases.slice(0, -1).map((current, i) => ({
     stronger: current.name,
     weaker: handTestCases[i + 1].name,
