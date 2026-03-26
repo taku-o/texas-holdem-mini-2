@@ -89,22 +89,23 @@ describe('各役のrank値とrankName', () => {
 })
 
 describe('スコアの大小関係', () => {
-  const scores = handTestCases.map(({ name, holeCards, communityCards }) => ({
-    name,
-    score: evaluateHand(holeCards, communityCards).score,
-  }))
+  let scores: { name: string; score: number }[]
 
-  const adjacentPairs = scores.slice(0, -1).map((current, i) => ({
+  beforeAll(() => {
+    scores = handTestCases.map(({ name, holeCards, communityCards }) => ({
+      name,
+      score: evaluateHand(holeCards, communityCards).score,
+    }))
+  })
+
+  test.each(handTestCases.slice(0, -1).map((current, i) => ({
     stronger: current.name,
-    weaker: scores[i + 1].name,
-    strongerScore: current.score,
-    weakerScore: scores[i + 1].score,
-  }))
-
-  test.each(adjacentPairs)(
+    weaker: handTestCases[i + 1].name,
+    index: i,
+  })))(
     '$stronger のスコアが $weaker より大きい',
-    ({ strongerScore, weakerScore }) => {
-      expect(strongerScore).toBeGreaterThan(weakerScore)
+    ({ index }) => {
+      expect(scores[index].score).toBeGreaterThan(scores[index + 1].score)
     },
   )
 })
@@ -167,6 +168,8 @@ describe('7枚入力', () => {
   })
 })
 
+// 0枚入力時、rankはHighCard(1)だがrankNameは'High Card'ではなく'None'を返す。
+// これはevaluator.tsの仕様で、カードなしの状態を通常のハイカードと区別するための挙動。
 describe('0枚入力', () => {
   test('rankがHighCard(1)である', () => {
     const result = evaluateHand([], [])
