@@ -211,7 +211,7 @@ function determineWinner(
 - `getNextActivePlayer`: `useGameEngine.ts` L138-144のロジックをそのまま移動。`% 5`を`% players.length`に変更（詳細はgap-analysis.md 技術的課題 項目6参照）
 - `isRoundOver`: `useGameEngine.ts` L146-158のロジックをそのまま移動
 - `calculateBlinds`: `startNextHand` L88-100のインラインロジックを関数化。`% 5`を`% players.length`に変更（同上）。`dealerIndex`は前回のディーラーインデックスを受け取り、次のディーラーから計算する。`dealerIndex`が`-1`（初回）の場合は、インデックス0から次のアクティブプレイヤーをディーラーとして計算を開始する
-- `applyAction`: `handleAction` L200-271の純粋計算部分のみ抽出。副作用（`setTimeout`、`startNextHand`呼び出し、`advancePhase`呼び出し）は`useGameEngine.ts`に残す
+- `applyAction`: `handleAction` L200-271の純粋計算部分のみ抽出。副作用（`setTimeout`、`advancePhase`呼び出し）および全員フォールド判定（L238-255）と付随する副作用（ポット付与、`startNextHand`呼び出し）は`useGameEngine.ts`に残す
 - `determineWinner`: `useEffect` L274-305のハンド評価・勝者判定ロジックを抽出。`evaluateHand`の呼び出しを含む
 
 ### Hooks レイヤー
@@ -245,6 +245,7 @@ function determineWinner(
 - `getNextActivePlayer`, `isRoundOver`, `calculateBlinds`, `applyAction`, `determineWinner`を`gameLogic.ts`からインポートして使用
 - `startNextHand`内のブラインド計算を`calculateBlinds`呼び出しに置換
 - `handleAction`内の純粋計算を`applyAction`呼び出しに置換
+- `advancePhase`内の`firstToAct`計算（L184-187）を`getNextActivePlayer`呼び出しに置き換える（`% 5`ハードコードの解消）
 - ショーダウンの`useEffect`内の勝者判定を`determineWinner`呼び出しに置換
 
 ## Data Models
