@@ -6,7 +6,6 @@ import {
   applyAction,
   determineWinner,
   INITIAL_CHIPS,
-  SMALL_BLIND,
   BIG_BLIND,
 } from '../gameLogic'
 import { card, createActivePlayers, createPlayer } from '../../__tests__/helpers'

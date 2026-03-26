@@ -17,10 +17,6 @@ import {
 } from '../gameLogic'
 import { card, createActivePlayers, createPlayer } from '../../__tests__/helpers'
 
-/**
- * ブラインド投入をシミュレートする。
- * useGameEngine.startNextHand 内の postBlind ロジックと同等。
- */
 const postBlind = (players: Player[], index: number, amount: number): number => {
   const actual = Math.min(players[index].chips, amount)
   players[index].chips -= actual
@@ -94,17 +90,14 @@ describe('ゲームフロー統合: applyAction → isRoundOver → getNextActiv
   test('全員コール後にラウンドが終了する', () => {
     const players = createActivePlayers(3)
     const currentBet = BIG_BLIND
-    let pot = BIG_BLIND
+    const pot = BIG_BLIND
 
-    // Player 0 calls
     const r0 = applyAction(players, 0, 'call', 0, pot, currentBet)
     expect(isRoundOver(r0.updatedPlayers, r0.newCurrentBet)).toBe(false)
 
-    // Player 1 calls
     const r1 = applyAction(r0.updatedPlayers, 1, 'call', 0, r0.newPot, r0.newCurrentBet)
     expect(isRoundOver(r1.updatedPlayers, r1.newCurrentBet)).toBe(false)
 
-    // Player 2 calls
     const r2 = applyAction(r1.updatedPlayers, 2, 'call', 0, r1.newPot, r1.newCurrentBet)
     expect(isRoundOver(r2.updatedPlayers, r2.newCurrentBet)).toBe(true)
   })
@@ -112,17 +105,14 @@ describe('ゲームフロー統合: applyAction → isRoundOver → getNextActiv
   test('レイズ後は他プレイヤーが再度アクションするまでラウンド続行', () => {
     const players = createActivePlayers(3)
     const currentBet = BIG_BLIND
-    let pot = BIG_BLIND
+    const pot = BIG_BLIND
 
-    // Player 0 raises
     const r0 = applyAction(players, 0, 'raise', 40, pot, currentBet)
     expect(isRoundOver(r0.updatedPlayers, r0.newCurrentBet)).toBe(false)
 
-    // Player 1 calls the raise
     const r1 = applyAction(r0.updatedPlayers, 1, 'call', 0, r0.newPot, r0.newCurrentBet)
     expect(isRoundOver(r1.updatedPlayers, r1.newCurrentBet)).toBe(false)
 
-    // Player 2 calls the raise
     const r2 = applyAction(r1.updatedPlayers, 2, 'call', 0, r1.newPot, r1.newCurrentBet)
     expect(isRoundOver(r2.updatedPlayers, r2.newCurrentBet)).toBe(true)
   })
@@ -130,9 +120,8 @@ describe('ゲームフロー統合: applyAction → isRoundOver → getNextActiv
   test('getNextActivePlayer でフォールド済みプレイヤーをスキップしてアクション順が進む', () => {
     const players = createActivePlayers(5)
     const currentBet = BIG_BLIND
-    let pot = BIG_BLIND
+    const pot = BIG_BLIND
 
-    // Player 0 folds
     const r0 = applyAction(players, 0, 'fold', 0, pot, currentBet)
 
     // 次のアクティブプレイヤーはフォールド済みの0をスキップ
@@ -144,11 +133,9 @@ describe('ゲームフロー統合: applyAction → isRoundOver → getNextActiv
   test('全員フォールドで残り1人になるとラウンド終了', () => {
     const players = createActivePlayers(3)
     const currentBet = BIG_BLIND
-    let pot = BIG_BLIND
+    const pot = BIG_BLIND
 
-    // Player 0 folds
     const r0 = applyAction(players, 0, 'fold', 0, pot, currentBet)
-    // Player 1 folds
     const r1 = applyAction(r0.updatedPlayers, 1, 'fold', 0, r0.newPot, r0.newCurrentBet)
 
     expect(isRoundOver(r1.updatedPlayers, r1.newCurrentBet)).toBe(true)
@@ -158,17 +145,14 @@ describe('ゲームフロー統合: applyAction → isRoundOver → getNextActiv
     const players = createActivePlayers(3)
     players[0].chips = 10
     const currentBet = BIG_BLIND
-    let pot = BIG_BLIND
+    const pot = BIG_BLIND
 
-    // Player 0 calls but goes all-in (chips < currentBet)
     const r0 = applyAction(players, 0, 'call', 0, pot, currentBet)
     expect(r0.updatedPlayers[0].action).toBe('all-in')
     expect(r0.updatedPlayers[0].chips).toBe(0)
 
-    // Player 1 calls
     const r1 = applyAction(r0.updatedPlayers, 1, 'call', 0, r0.newPot, r0.newCurrentBet)
 
-    // Player 2 calls
     const r2 = applyAction(r1.updatedPlayers, 2, 'call', 0, r1.newPot, r1.newCurrentBet)
 
     expect(isRoundOver(r2.updatedPlayers, r2.newCurrentBet)).toBe(true)
@@ -269,7 +253,6 @@ describe('ゲームフロー統合: ショーダウン → determineWinner', () 
 
     const result = determineWinner(players, communityCards)
 
-    // チップ付与のシミュレート（useGameEngine.ts のショーダウン処理相当）
     const updatedPlayers = [...players]
     const winnerIdx = updatedPlayers.findIndex(p => p.id === result.winnerId)
     updatedPlayers[winnerIdx] = {

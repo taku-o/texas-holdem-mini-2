@@ -39,7 +39,6 @@ export interface WinnerResult {
   handRankName: string;
 }
 
-/** 非アクティブ・フォールド済み・チップ0（オールイン）をスキップする。 */
 export const getNextActivePlayer = (currentIndex: number, players: Player[]): number => {
   let next = (currentIndex + 1) % players.length;
   while (
@@ -64,7 +63,6 @@ export const isRoundOver = (players: Player[], currentBet: number): boolean => {
   return !needToAct;
 };
 
-/** dealerIndex は前回のディーラーインデックス。-1 の場合は初回。 */
 export const calculateBlinds = (players: Player[], dealerIndex: number): BlindPositions => {
   const findNextActive = (start: number): number => {
     let idx = start % players.length;
@@ -80,7 +78,6 @@ export const calculateBlinds = (players: Player[], dealerIndex: number): BlindPo
   return { dealerIndex: dealer, smallBlindIndex: sb, bigBlindIndex: bb, utgIndex: utg };
 };
 
-/** 元の players 配列は変更しない。 */
 export const applyAction = (
   players: Player[],
   playerIndex: number,
@@ -125,7 +122,6 @@ export const applyAction = (
   return { updatedPlayers, newPot, newCurrentBet, logMessage };
 };
 
-/** フォールド済み・非アクティブプレイヤーは除外する。 */
 export const determineWinner = (players: Player[], communityCards: PlayingCard[]): WinnerResult => {
   const activePlayers = players.filter(p => p.isActive && p.action !== 'fold');
 

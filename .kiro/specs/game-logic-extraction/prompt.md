@@ -51,5 +51,6 @@ update pr
 
 takt --task "/kiro:spec-impl game-logic-extraction 1"
 takt --task "/kiro:spec-impl game-logic-extraction 2"
+takt --task "/kiro:spec-impl game-logic-extraction 3"
 
 
