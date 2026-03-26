@@ -169,7 +169,6 @@ interface WinnerResult {
   winnerId: string;
   winnerName: string;
   handRankName: string;
-  score: number;
 }
 
 // --- 関数シグネチャ ---
@@ -211,7 +210,7 @@ function determineWinner(
 **Implementation Notes**
 - `getNextActivePlayer`: `useGameEngine.ts` L138-144のロジックをそのまま移動。`% 5`を`% players.length`に変更
 - `isRoundOver`: `useGameEngine.ts` L146-158のロジックをそのまま移動
-- `calculateBlinds`: `startNextHand` L88-100のインラインロジックを関数化。`dealerIndex`は前回のディーラーインデックスを受け取り、次のディーラーから計算する
+- `calculateBlinds`: `startNextHand` L88-100のインラインロジックを関数化。`dealerIndex`は前回のディーラーインデックスを受け取り、次のディーラーから計算する。`dealerIndex`が`-1`（初回）の場合は、インデックス0から次のアクティブプレイヤーをディーラーとして計算を開始する
 - `applyAction`: `handleAction` L200-271の純粋計算部分のみ抽出。副作用（`setTimeout`、`startNextHand`呼び出し、`advancePhase`呼び出し）は`useGameEngine.ts`に残す
 - `determineWinner`: `useEffect` L274-305のハンド評価・勝者判定ロジックを抽出。`evaluateHand`の呼び出しを含む
 
@@ -256,7 +255,7 @@ function determineWinner(
 
 - **`BlindPositions`**: dealer, sb, bb, utgのインデックスを保持するValue Object
 - **`ApplyActionResult`**: アクション適用結果（更新後のplayers, pot, currentBet, log）を保持するValue Object
-- **`WinnerResult`**: 勝者判定結果（winnerId, winnerName, handRankName, score）を保持するValue Object
+- **`WinnerResult`**: 勝者判定結果（winnerId, winnerName, handRankName）を保持するValue Object
 
 既存型（`Player`, `PlayingCard`, `PlayerAction`）は`src/types/index.ts`に維持。
 
@@ -281,6 +280,7 @@ function determineWinner(
 | `isRoundOver` | アクティブ1人で`true`を返す |
 | `calculateBlinds` | dealer, sb, bb, utgの正しいインデックスを返す |
 | `calculateBlinds` | 非アクティブプレイヤーをスキップする |
+| `calculateBlinds` | `dealerIndex`が`-1`（初回）の場合にインデックス0から計算する |
 | `applyAction` (fold) | `player.action`が`'fold'`になる |
 | `applyAction` (call) | `player.chips`が減少し`pot`が増加する |
 | `applyAction` (raise) | `player.currentBet`が`currentBet * 2`以上になる |

@@ -70,6 +70,25 @@
 - **理由**: `GameState`は`gameLogic.ts`の関数シグネチャに密接に関連しており、同一ファイルに配置するのが自然。`src/types/index.ts`はドメインモデル型（`Player`, `PlayingCard`等）に特化させる
 - **トレードオフ**: `useGameEngine.ts`からのre-exportが必要だが、外部への影響は最小限
 
+### 決定: applyActionのシグネチャ
+
+- **コンテキスト**: Issue #4および初期の要件定義書では`applyAction(state, action, amount)`という3引数のシグネチャが記載されていたが、設計書では`applyAction(players, playerIndex, action, amount, pot, currentBet)`という6引数版で定義された
+- **検討した選択肢**:
+  1. `applyAction(state, action, amount)` — Issue #4の記述に合致するが、テスト時に`GameState`全体の構築が必要
+  2. `applyAction(players, playerIndex, action, amount, pot, currentBet)` — 必要な値のみを受け取り、テストが容易
+- **選択したアプローチ**: オプション2。6引数版を採用し、要件定義書を設計書に合わせて更新した
+- **理由**: 純粋関数として抽出する際、`GameState`全体を受け取るとテスト時に不要なフィールド（`deck`, `communityCards`, `logs`等）まで構築する必要があり、テスタビリティが低下する。必要最小限の引数を受け取る6引数版の方が純粋関数の設計方針に合致する
+- **トレードオフ**: 引数が多くなるが、各引数の意味が明確であり、関数の責務が限定される
+
+### 決定: WinnerResultからscoreフィールドを除外
+
+- **コンテキスト**: `determineWinner`の戻り値`WinnerResult`に`score: number`フィールドを含めるかどうか
+- **検討した選択肢**:
+  1. `score`を含める — ソート結果の情報を呼び出し元に提供
+  2. `score`を含めない — 呼び出し元が使用しないフィールドを返さない
+- **選択したアプローチ**: オプション2。`score`はソート用に`determineWinner`内部で使用するが、戻り値には含めない
+- **理由**: 既存の`useGameEngine.ts`で勝者判定後に`score`を参照する箇所がなく、`winnerId`/`winnerName`/`handRankName`のみ使用している。呼び出し元が使用しないフィールドを戻り値に含めるのは不要
+
 ## リスク & 対策
 - `applyAction`の抽出時に副作用の分離を誤ると振る舞いが変わるリスク — E2Eテストで検出可能
 - `calculateBlinds`のハードコード`% 5`を`% players.length`に変更する際の回帰リスク — 単体テストで検証
