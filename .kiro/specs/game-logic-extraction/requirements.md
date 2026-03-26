@@ -31,7 +31,8 @@
 3. When 未行動のプレイヤーが存在する場合, the `isRoundOver` shall `false`を返す
 4. When ベット額が一致していないプレイヤーが存在する場合, the `isRoundOver` shall `false`を返す
 5. When フォールドしていないアクティブプレイヤーが1人だけの場合, the `isRoundOver` shall `true`を返す
-6. When `useGameEngine.ts`から`isRoundOver`が呼び出された時, the `useGameEngine.ts` shall 抽出前と同一の振る舞いを維持する
+6. When オールインプレイヤー（チップ0）が存在する場合, the `isRoundOver` shall そのプレイヤーをアクション不要として扱い、行動済みと同等に判定する
+7. When `useGameEngine.ts`から`isRoundOver`が呼び出された時, the `useGameEngine.ts` shall 抽出前と同一の振る舞いを維持する
 
 ### Requirement 3: ブラインドポジション計算関数の抽出
 

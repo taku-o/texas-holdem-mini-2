@@ -81,7 +81,7 @@ graph TB
 | 要件 | サマリー | コンポーネント | インターフェース | フロー |
 |------|---------|---------------|-----------------|-------|
 | 1.1-1.5 | getNextActivePlayer抽出 | gameLogic.ts | getNextActivePlayer() | - |
-| 2.1-2.6 | isRoundOver抽出 | gameLogic.ts | isRoundOver() | - |
+| 2.1-2.7 | isRoundOver抽出 | gameLogic.ts | isRoundOver() | - |
 | 3.1-3.4 | calculateBlinds抽出 | gameLogic.ts | calculateBlinds() | - |
 | 4.1-4.5 | applyAction抽出 | gameLogic.ts | applyAction() | - |
 | 5.1-5.3 | determineWinner抽出 | gameLogic.ts | determineWinner() | - |
