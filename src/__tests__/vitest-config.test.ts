@@ -1,22 +1,10 @@
 import { describe, test, expect, beforeAll } from 'vitest'
-import { loadConfigFromFile } from 'vite'
 import type { UserConfig } from 'vite'
-import fs from 'node:fs'
-import path from 'node:path'
 import { parse as parseJsonc } from 'jsonc-parser'
-
-async function loadConfig(filename: string): Promise<UserConfig> {
-  const configPath = path.resolve(__dirname, '../../', filename)
-  const result = await loadConfigFromFile({ command: 'serve', mode: 'test' }, configPath)
-  if (!result) {
-    throw new Error(`Failed to load config from ${configPath}`)
-  }
-  return result.config
-}
+import { loadConfig, loadProjectFile, loadPackageJson } from './test-helpers'
 
 function loadTsconfigApp(): { exclude?: string[] } {
-  const configPath = path.resolve(__dirname, '../../tsconfig.app.json')
-  const content = fs.readFileSync(configPath, 'utf-8')
+  const content = loadProjectFile('tsconfig.app.json')
   return parseJsonc(content) as { exclude?: string[] }
 }
 
@@ -25,6 +13,14 @@ describe('Vitest設定', () => {
 
   beforeAll(async () => {
     vitestConfig = await loadConfig('vitest.config.ts')
+  })
+
+  test('グローバル関数が有効化されている', () => {
+    expect(vitestConfig.test?.globals).toBe(true)
+  })
+
+  test('セットアップファイルが設定されている', () => {
+    expect(vitestConfig.test?.setupFiles).toContain('./src/test/setup.ts')
   })
 
   test('e2eディレクトリがテスト除外パターンに含まれている', () => {
@@ -50,20 +46,14 @@ describe('Vitest設定', () => {
 
 describe('vite.config.ts の設定分離', () => {
   test('vite.config.tsにtest設定が含まれていない', async () => {
-    // Given: vite.config.tsを読み込む
     const config = await loadConfig('vite.config.ts')
-
-    // Then: testプロパティが存在しない
     expect(config.test).toBeUndefined()
   })
 
   test('vitest.config.tsがプラグイン定義を重複せずvite.config.tsを参照している', () => {
-    const vitestConfigPath = path.resolve(__dirname, '../../vitest.config.ts')
-    const source = fs.readFileSync(vitestConfigPath, 'utf-8')
+    const source = loadProjectFile('vitest.config.ts')
 
-    // vitest.config.tsはvite.configをimportして参照すべき
     expect(source).toMatch(/import\s+.*from\s+['"]\.\/vite\.config['"]/)
-    // プラグインの直接importがないこと（DRY違反の再発防止）
     expect(source).not.toMatch(/@vitejs\/plugin-react/)
     expect(source).not.toMatch(/@tailwindcss\/vite/)
   })
@@ -71,13 +61,9 @@ describe('vite.config.ts の設定分離', () => {
 
 describe('tsconfig.app.json テストファイル除外', () => {
   test('テストファイルがTypeScriptビルド対象から除外されている', () => {
-    // Given: tsconfig.app.json を読み込む
     const tsconfig = loadTsconfigApp()
-
-    // When: exclude パターンを取得する
     const excludePatterns = tsconfig.exclude
 
-    // Then: テストファイルパターンが除外されている
     if (!excludePatterns) throw new Error('tsconfig.app.json exclude is not defined')
     const hasTestExclude = excludePatterns.some(
       (pattern: string) => pattern.includes('*.test.ts'),
@@ -87,5 +73,30 @@ describe('tsconfig.app.json テストファイル除外', () => {
     )
     expect(hasTestExclude).toBe(true)
     expect(hasTestDirExclude).toBe(true)
+  })
+})
+
+describe('Vitest環境設定: npmスクリプト', () => {
+  let scripts: Record<string, string>
+
+  beforeAll(() => {
+    const pkg = loadPackageJson()
+    if (!pkg.scripts) throw new Error('No scripts found in package.json')
+    scripts = pkg.scripts as Record<string, string>
+  })
+
+  test('testスクリプトが単発実行モードである', () => {
+    expect(scripts.test).toBe('vitest run')
+  })
+
+  test('test:watchスクリプトがウォッチモードである', () => {
+    expect(scripts['test:watch']).toBe('vitest')
+  })
+})
+
+describe('Vitest環境設定: セットアップファイル', () => {
+  test('src/test/setup.ts が存在する', () => {
+    const content = loadProjectFile('src/test/setup.ts')
+    expect(content.length).toBeGreaterThan(0)
   })
 })
