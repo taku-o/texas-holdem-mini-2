@@ -36,7 +36,7 @@
 
 | 要件 | 既存アセット | ギャップ |
 |------|-------------|---------|
-| Req 1: `getNextActivePlayer`抽出 | `useGameEngine.ts` L138-144に既存ロジック | **なし** — ロジックはそのまま抽出可能 |
+| Req 1: `getNextActivePlayer`抽出 | `useGameEngine.ts` L138-144に既存ロジック | **軽微** — `% 5`を`% players.length`に変更（技術的課題 項目6参照） |
 | Req 2: `isRoundOver`抽出 | `useGameEngine.ts` L146-158に既存ロジック | **なし** — ロジックはそのまま抽出可能 |
 | Req 3: `calculateBlinds`抽出 | `startNextHand` L88-100にインラインロジック | **軽微** — インラインコードを関数化する必要あり |
 | Req 4: `applyAction`抽出 | `handleAction` L200-271にインラインロジック | **中程度** — `setState`コールバック内のロジックを分離する必要あり。ログ生成、副作用（`setTimeout`）、次ハンド開始との分離が必要 |
@@ -51,6 +51,8 @@
 2. **`calculateBlinds`の関数シグネチャ**: 現在のインラインロジックはプレイヤー数5をハードコードしている。関数化時にプレイヤー数をパラメータ化するか、5固定のまま抽出するかの判断
 3. **定数の共有**: `BIG_BLIND`、`SMALL_BLIND`等の定数を`gameLogic.ts`と`useGameEngine.ts`のどちらに配置するか
 4. **`GameState`型の共有**: `applyAction`は`GameState`型に依存するが、現在`GameState`は`useGameEngine.ts`内で定義されている。型定義の移動先の検討が必要
+5. **`dealerIndex`の初期値**: `useGameEngine.ts`にて`dealerIndex`の初期値は`-1`であることを確認済み（L33: `dealerIndex: -1,`、L63: `dealerIndex: -1, // Will be incremented to 0`）。`calculateBlinds`関数は`dealerIndex`が`-1`の場合にインデックス0から計算を開始する設計とする
+6. **`% 5`ハードコードの`% players.length`への変更**: `getNextActivePlayer`（L139,141）、`calculateBlinds`（L88,90,93,94,96,97,99,100）、`firstToAct`計算（L184,186）で`% 5`がハードコードされている。純粋関数化にあたり`% players.length`に変更するが、現在のゲームはプレイヤー数5固定のため実行時の振る舞いは同等。単体テストおよびE2Eテストで回帰を検証する
 
 ### 複雑度シグナル
 

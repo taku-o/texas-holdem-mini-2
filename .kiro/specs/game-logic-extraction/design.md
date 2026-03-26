@@ -208,9 +208,9 @@ function determineWinner(
 - 不変条件: 全関数は純粋関数であり、副作用を持たない
 
 **Implementation Notes**
-- `getNextActivePlayer`: `useGameEngine.ts` L138-144のロジックをそのまま移動。`% 5`を`% players.length`に変更
+- `getNextActivePlayer`: `useGameEngine.ts` L138-144のロジックをそのまま移動。`% 5`を`% players.length`に変更（詳細はgap-analysis.md 技術的課題 項目6参照）
 - `isRoundOver`: `useGameEngine.ts` L146-158のロジックをそのまま移動
-- `calculateBlinds`: `startNextHand` L88-100のインラインロジックを関数化。`dealerIndex`は前回のディーラーインデックスを受け取り、次のディーラーから計算する。`dealerIndex`が`-1`（初回）の場合は、インデックス0から次のアクティブプレイヤーをディーラーとして計算を開始する
+- `calculateBlinds`: `startNextHand` L88-100のインラインロジックを関数化。`% 5`を`% players.length`に変更（同上）。`dealerIndex`は前回のディーラーインデックスを受け取り、次のディーラーから計算する。`dealerIndex`が`-1`（初回）の場合は、インデックス0から次のアクティブプレイヤーをディーラーとして計算を開始する
 - `applyAction`: `handleAction` L200-271の純粋計算部分のみ抽出。副作用（`setTimeout`、`startNextHand`呼び出し、`advancePhase`呼び出し）は`useGameEngine.ts`に残す
 - `determineWinner`: `useEffect` L274-305のハンド評価・勝者判定ロジックを抽出。`evaluateHand`の呼び出しを含む
 
