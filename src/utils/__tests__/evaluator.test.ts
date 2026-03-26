@@ -87,3 +87,41 @@ describe('各役のrank値とrankName', () => {
     },
   )
 })
+
+describe('スコアの大小関係', () => {
+  const scores = handTestCases.map(({ name, holeCards, communityCards }) => ({
+    name,
+    score: evaluateHand(holeCards, communityCards).score,
+  }))
+
+  const adjacentPairs = scores.slice(0, -1).map((current, i) => ({
+    stronger: current.name,
+    weaker: scores[i + 1].name,
+    strongerScore: current.score,
+    weakerScore: scores[i + 1].score,
+  }))
+
+  test.each(adjacentPairs)(
+    '$stronger のスコアが $weaker より大きい',
+    ({ strongerScore, weakerScore }) => {
+      expect(strongerScore).toBeGreaterThan(weakerScore)
+    },
+  )
+})
+
+describe('同役キッカー比較', () => {
+  test('ワンペアA+キッカーK のスコアが ワンペアA+キッカーQ より大きい', () => {
+    const pairAWithKickerK = evaluateHand(
+      [card('hearts', 'A'), card('diamonds', 'K')],
+      [card('clubs', 'A'), card('spades', '7'), card('hearts', '3')],
+    )
+    const pairAWithKickerQ = evaluateHand(
+      [card('hearts', 'A'), card('diamonds', 'Q')],
+      [card('clubs', 'A'), card('spades', '7'), card('hearts', '3')],
+    )
+
+    expect(pairAWithKickerK.rank).toBe(HandRank.OnePair)
+    expect(pairAWithKickerQ.rank).toBe(HandRank.OnePair)
+    expect(pairAWithKickerK.score).toBeGreaterThan(pairAWithKickerQ.score)
+  })
+})
