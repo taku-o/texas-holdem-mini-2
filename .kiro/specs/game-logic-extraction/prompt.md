@@ -40,4 +40,16 @@ think.
 update pr
 
 
+こちらを修正してください。
+  4. 設計書のadvancePhase置き換えに関する記述（重要度: 低）
+
+  - design.md:254でadvancePhase内のfirstToAct計算をgetNextActivePlayer呼び出しに置き換えると記載
+  - tasks.md:776でも同様の記述あり
+  - この変更は% 5ハードコード解消の一環だが、設計書のComponents and
+  InterfacesセクションのuseGameEngine.ts説明には明記されていない。Implementation Notesに追記があると実装時の参照がスムーズ
+
+
+takt --task "/kiro:spec-impl game-logic-extraction 1"
+takt --task "/kiro:spec-impl game-logic-extraction 2"
+
 

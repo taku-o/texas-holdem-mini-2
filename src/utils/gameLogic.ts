@@ -1,6 +1,20 @@
 import type { Player, PlayingCard } from '../types';
 import { evaluateHand } from './evaluator';
 
+export type GamePhase = 'idle' | 'pre-flop' | 'flop' | 'turn' | 'river' | 'showdown' | 'game-over';
+
+export interface GameState {
+  players: Player[];
+  communityCards: PlayingCard[];
+  deck: PlayingCard[];
+  pot: number;
+  currentBet: number;
+  phase: GamePhase;
+  activePlayerIndex: number;
+  dealerIndex: number;
+  logs: string[];
+}
+
 export const INITIAL_CHIPS = 1000;
 export const SMALL_BLIND = 10;
 export const BIG_BLIND = 20;
