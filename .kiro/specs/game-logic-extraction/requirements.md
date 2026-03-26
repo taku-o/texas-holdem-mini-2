@@ -43,7 +43,8 @@
 1. The `gameLogic.ts` shall ブラインドポジション計算関数をエクスポートする
 2. When ブラインドポジション計算関数が呼び出された時, the `gameLogic.ts` shall dealer, sb, bb, utgの各インデックスを返す
 3. When 非アクティブプレイヤーが存在する場合, the `calculateBlinds` shall 非アクティブプレイヤーをスキップして正しいポジションを計算する
-4. When `useGameEngine.ts`から`calculateBlinds`が呼び出された時, the `useGameEngine.ts` shall 抽出前と同一の振る舞いを維持する
+4. When `dealerIndex`が`-1`（初回）の場合, the `calculateBlinds` shall インデックス0から次のアクティブプレイヤーをディーラーとして計算を開始する
+5. When `useGameEngine.ts`から`calculateBlinds`が呼び出された時, the `useGameEngine.ts` shall 抽出前と同一の振る舞いを維持する
 
 ### Requirement 4: アクション適用関数の抽出
 
@@ -55,7 +56,8 @@
 2. When actionが`'fold'`の場合, the `applyAction` shall 対象プレイヤーの`action`を`'fold'`に設定した新しい結果を返す
 3. When actionが`'call'`の場合, the `applyAction` shall 対象プレイヤーの`chips`を元値からコール額を減算し、`pot`を元値にコール額を加算した新しい結果を返す
 4. When actionが`'raise'`の場合, the `applyAction` shall 対象プレイヤーの`currentBet`が`currentBet * 2`以上となる新しい結果を返す
-5. When `useGameEngine.ts`から`applyAction`が呼び出された時, the `useGameEngine.ts` shall 抽出前と同一の振る舞いを維持する
+5. When `applyAction`が呼び出された時, the `applyAction` shall 入力データ（`players`配列等）を変更せず、新しいオブジェクトとして結果を返す
+6. When `useGameEngine.ts`から`applyAction`が呼び出された時, the `useGameEngine.ts` shall 抽出前と同一の振る舞いを維持する
 
 ### Requirement 5: 勝者判定関数の抽出
 

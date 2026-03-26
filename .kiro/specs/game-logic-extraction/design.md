@@ -82,8 +82,8 @@ graph TB
 |------|---------|---------------|-----------------|-------|
 | 1.1-1.5 | getNextActivePlayer抽出 | gameLogic.ts | getNextActivePlayer() | - |
 | 2.1-2.7 | isRoundOver抽出 | gameLogic.ts | isRoundOver() | - |
-| 3.1-3.4 | calculateBlinds抽出 | gameLogic.ts | calculateBlinds() | - |
-| 4.1-4.5 | applyAction抽出 | gameLogic.ts | applyAction() | - |
+| 3.1-3.5 | calculateBlinds抽出 | gameLogic.ts | calculateBlinds() | - |
+| 4.1-4.6 | applyAction抽出 | gameLogic.ts | applyAction() | - |
 | 5.1-5.3 | determineWinner抽出 | gameLogic.ts | determineWinner() | - |
 | 6.1-6.3 | useGameEngine振る舞い維持 | useGameEngine.ts | 既存APIを維持 | - |
 | 7.1-7.8 | 単体テスト | gameLogic.test.ts | - | - |
@@ -104,7 +104,7 @@ graph TB
 | フィールド | 詳細 |
 |-----------|------|
 | Intent | ゲームロジックの純粋関数群を提供 |
-| Requirements | 1.1-1.5, 2.1-2.6, 3.1-3.4, 4.1-4.5, 5.1-5.3 |
+| Requirements | 1.1-1.5, 2.1-2.7, 3.1-3.5, 4.1-4.6, 5.1-5.3 |
 
 **責務 & 制約**
 - 5つのゲームロジック関数を純粋関数としてエクスポート
