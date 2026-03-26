@@ -77,8 +77,8 @@
   - リファクタリング前と同一のゲームフロー（idle → pre-flop → flop → turn → river → showdown）が維持されていることを確認する
   - _Requirements: 6.2, 6.3_
 
-- [ ] 3. 抽出した関数の単体テスト
-- [ ] 3.1 getNextActivePlayerとisRoundOverのテストを作成する
+- [x] 3. 抽出した関数の単体テスト
+- [x] 3.1 getNextActivePlayerとisRoundOverのテストを作成する
   - 通常のプレイヤー配列で次のアクティブプレイヤーの正しいインデックスが返ることを検証する
   - フォールド済みプレイヤーがスキップされることを検証する
   - チップ0のプレイヤーがスキップされることを検証する
@@ -89,20 +89,20 @@
   - オールインプレイヤー（チップ0）がアクション不要として扱われることを検証する
   - _Requirements: 7.1, 7.2, 7.3_
 
-- [ ] 3.2 calculateBlindsのテストを作成する
+- [x] 3.2 calculateBlindsのテストを作成する
   - 全員アクティブな場合のdealer・SB・BB・UTGの正しいインデックスが返ることを検証する
   - 非アクティブプレイヤーが存在する場合に正しくスキップされることを検証する
   - dealerIndexが-1（初回）の場合にインデックス0から計算が開始されることを検証する
   - _Requirements: 7.4_
 
-- [ ] 3.3 applyActionのテストを作成する
+- [x] 3.3 applyActionのテストを作成する
   - Foldアクションで対象プレイヤーのactionがfoldになることを検証する
   - Callアクションで対象プレイヤーのchipsが減少し、potが増加することを検証する
   - Raiseアクションで対象プレイヤーのcurrentBetがcurrentBetの2倍以上になることを検証する
   - applyAction呼び出し後に入力のplayers配列が変更されていないことを検証する
   - _Requirements: 7.5, 7.6, 7.7_
 
-- [ ] 3.4 determineWinnerのテストを作成する
+- [x] 3.4 determineWinnerのテストを作成する
   - 最強ハンドを持つプレイヤーのIDが期待値と一致することを検証する
   - _Requirements: 7.8_
 
