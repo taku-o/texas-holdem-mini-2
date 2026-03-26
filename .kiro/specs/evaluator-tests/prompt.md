@@ -17,6 +17,7 @@ think.
 摘事項に対応してください
 
 takt --task "/kiro:spec-impl evaluator-tests 1"
+takt --task "/kiro:spec-impl evaluator-tests 2"
 
 
 
