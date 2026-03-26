@@ -125,3 +125,58 @@ describe('同役キッカー比較', () => {
     expect(pairAWithKickerK.score).toBeGreaterThan(pairAWithKickerQ.score)
   })
 })
+
+describe('ホイールストレート', () => {
+  const wheelHoleCards = [card('hearts', 'A'), card('diamonds', '2')]
+  const wheelCommunityCards = [card('clubs', '3'), card('spades', '4'), card('hearts', '5')]
+
+  const normalStraightHoleCards = [card('hearts', '2'), card('diamonds', '3')]
+  const normalStraightCommunityCards = [card('clubs', '4'), card('spades', '5'), card('hearts', '6')]
+
+  test('ホイールストレートのrankがStraight(5)である', () => {
+    const result = evaluateHand(wheelHoleCards, wheelCommunityCards)
+
+    expect(result.rank).toBe(HandRank.Straight)
+  })
+
+  test('ホイールストレートのスコアが通常ストレート(2-3-4-5-6)より小さい', () => {
+    const wheelResult = evaluateHand(wheelHoleCards, wheelCommunityCards)
+    const normalResult = evaluateHand(normalStraightHoleCards, normalStraightCommunityCards)
+
+    expect(normalResult.rank).toBe(HandRank.Straight)
+    expect(wheelResult.score).toBeLessThan(normalResult.score)
+  })
+})
+
+describe('7枚入力', () => {
+  test('bestCardsの長さが5である', () => {
+    const holeCards = [card('hearts', 'A'), card('diamonds', 'K')]
+    const communityCards = [
+      card('clubs', 'Q'),
+      card('spades', 'J'),
+      card('hearts', '10'),
+      card('diamonds', '5'),
+      card('clubs', '3'),
+    ]
+
+    const result = evaluateHand(holeCards, communityCards)
+
+    expect(result.bestCards).toHaveLength(5)
+  })
+})
+
+describe('0枚入力', () => {
+  const result = evaluateHand([], [])
+
+  test('rankがHighCard(1)である', () => {
+    expect(result.rank).toBe(HandRank.HighCard)
+  })
+
+  test('scoreが0である', () => {
+    expect(result.score).toBe(0)
+  })
+
+  test('rankNameがNoneである', () => {
+    expect(result.rankName).toBe('None')
+  })
+})

@@ -19,6 +19,8 @@ think.
 takt --task "/kiro:spec-impl evaluator-tests 1"
 takt --task "/kiro:spec-impl evaluator-tests 2"
 takt --task "/kiro:spec-impl evaluator-tests 3"
+takt --task "/kiro:spec-impl evaluator-tests 4"
+takt --task "/kiro:spec-impl evaluator-tests 5"
 
 
 
