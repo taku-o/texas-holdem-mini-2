@@ -283,7 +283,7 @@ export const dealCommunityCards: (
 | コンポーネント | エラーケース | 対応 |
 |--------------|------------|------|
 | `applyAction` | `raiseAmount`が負値になるケース | `Math.max(0, ...)`ガードにより0に正規化。例外は発生しない |
-| `getNextActivePlayer` | 全プレイヤーが非アクティブ | -1を返す。呼び出し元の`advancePhase`ではshowdownフェーズの挙動と整合し、`handleAction`では`isRoundOver`により到達しない |
+| `getNextActivePlayer` | 全プレイヤーが非アクティブ | -1を返す。呼び出し元への影響の詳細は`getNextActivePlayer`コンポーネント節の呼び出し元影響分析を参照 |
 | `dealCommunityCards` | デッキ枚数不足 | 52枚デッキで最大消費18枚（ホール10 + バーン3 + コミュニティ5）のため、通常のゲーム進行では発生しない。万が一デッキ枚数が不足した場合、`deck.pop()`が`undefined`を返しコミュニティカードに`undefined`が混入する。本修正ではこの異常系のガードは追加しない（正常なゲーム進行を前提とし、デッキ管理の堅牢化は本スコープ外） |
 
 ## テスト戦略
