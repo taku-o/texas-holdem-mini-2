@@ -65,9 +65,13 @@ export const isRoundOver = (players: Player[], currentBet: number): boolean => {
 
 export const calculateBlinds = (players: Player[], dealerIndex: number): BlindPositions => {
   const findNextActive = (start: number): number => {
-    let idx = start % players.length;
-    while (!players[idx].isActive) idx = (idx + 1) % players.length;
-    return idx;
+    const startIdx = start % players.length;
+    let idx = startIdx;
+    do {
+      if (players[idx].isActive) return idx;
+      idx = (idx + 1) % players.length;
+    } while (idx !== startIdx);
+    return startIdx;
   };
 
   const dealer = findNextActive(dealerIndex === -1 ? 0 : dealerIndex + 1);
