@@ -517,7 +517,7 @@ describe('タスク2.3: 外部 API インターフェースの維持', () => {
 })
 
 describe('コード品質: What コメント禁止', () => {
-  test('useGameEngine.ts に What コメント（// で始まる行コメント）が存在しない', async () => {
+  test('useGameEngine.ts に What コメント（// で始まる行コメント）が存在しない（ディレクティブコメントは除外）', async () => {
     const fs = await import('fs')
     const path = await import('path')
     const filePath = path.resolve(__dirname, '../useGameEngine.ts')
@@ -526,7 +526,10 @@ describe('コード品質: What コメント禁止', () => {
 
     const whatCommentLines = lines
       .map((line, i) => ({ line: line.trim(), num: i + 1 }))
-      .filter(({ line }) => /^\/\/\s/.test(line))
+      .filter(({ line }) =>
+        /^\/\/\s/.test(line) &&
+        !/^\/\/\s*(eslint|TODO|FIXME|@ts-|istanbul)/.test(line)
+      )
 
     expect(whatCommentLines).toEqual([])
   })

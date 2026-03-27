@@ -148,19 +148,19 @@ const BIG_BLIND: number;      // 20
 // --- ブラインド計算の戻り値 ---
 
 interface BlindPositions {
-  dealer: number;
-  sb: number;
-  bb: number;
-  utg: number;
+  dealerIndex: number;
+  smallBlindIndex: number;
+  bigBlindIndex: number;
+  utgIndex: number;
 }
 
 // --- applyActionの戻り値 ---
 
 interface ApplyActionResult {
-  players: Player[];
-  pot: number;
-  currentBet: number;
-  log: string;
+  updatedPlayers: Player[];
+  newPot: number;
+  newCurrentBet: number;
+  logMessage: string;
 }
 
 // --- determineWinnerの戻り値 ---
@@ -254,8 +254,8 @@ function determineWinner(
 
 既存の型定義を変更しない。`gameLogic.ts`で新規に定義する型:
 
-- **`BlindPositions`**: dealer, sb, bb, utgのインデックスを保持するValue Object
-- **`ApplyActionResult`**: アクション適用結果（更新後のplayers, pot, currentBet, log）を保持するValue Object
+- **`BlindPositions`**: dealerIndex, smallBlindIndex, bigBlindIndex, utgIndexのインデックスを保持するValue Object
+- **`ApplyActionResult`**: アクション適用結果（updatedPlayers, newPot, newCurrentBet, logMessage）を保持するValue Object
 - **`WinnerResult`**: 勝者判定結果（winnerId, winnerName, handRankName）を保持するValue Object
 
 既存型（`Player`, `PlayingCard`, `PlayerAction`）は`src/types/index.ts`に維持。

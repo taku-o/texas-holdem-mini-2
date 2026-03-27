@@ -129,6 +129,10 @@ export const applyAction = (
 export const determineWinner = (players: Player[], communityCards: PlayingCard[]): WinnerResult => {
   const activePlayers = players.filter(p => p.isActive && p.action !== 'fold');
 
+  if (activePlayers.length === 0) {
+    return { winnerId: '', winnerName: '', handRankName: '' };
+  }
+
   const results = activePlayers.map(p => ({
     player: p,
     eval: evaluateHand(p.cards, communityCards),
