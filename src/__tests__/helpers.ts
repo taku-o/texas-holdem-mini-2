@@ -18,3 +18,10 @@ export const createActivePlayers = (count: number): Player[] =>
   Array.from({ length: count }, (_, i) =>
     createPlayer({ id: `p${i}`, name: `Player ${i}` }),
   )
+
+export const resetPlayersForNewRound = (players: Player[]): Player[] =>
+  players.map(p => ({
+    ...p,
+    currentBet: 0,
+    action: (p.action === 'fold' || p.action === 'all-in') ? p.action : null,
+  }))

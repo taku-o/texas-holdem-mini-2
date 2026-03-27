@@ -398,6 +398,30 @@ describe('applyAction', () => {
 
       expect(result.logMessage).toContain('raises')
     })
+
+    test('既にベットしている分を差し引いてレイズする', () => {
+      const players = createActivePlayers(3)
+      players[0].currentBet = 20
+      players[0].chips = INITIAL_CHIPS - 20
+
+      const result = applyAction(players, 0, 'raise', 60, 100, 20)
+
+      expect(result.updatedPlayers[0].currentBet).toBe(60)
+      expect(result.updatedPlayers[0].chips).toBe(INITIAL_CHIPS - 60)
+      expect(result.newPot).toBe(140)
+    })
+
+    test('amountが最低レイズ額と同じ場合、既存ベットとの差分だけ追加される', () => {
+      const players = createActivePlayers(3)
+      players[0].currentBet = 20
+      players[0].chips = INITIAL_CHIPS - 20
+
+      const result = applyAction(players, 0, 'raise', 40, 100, 20)
+
+      expect(result.updatedPlayers[0].chips).toBe(INITIAL_CHIPS - 40)
+      expect(result.updatedPlayers[0].currentBet).toBe(40)
+      expect(result.newPot).toBe(120)
+    })
   })
 
   describe('不変性', () => {
