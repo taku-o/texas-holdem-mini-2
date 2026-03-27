@@ -186,7 +186,17 @@ export const getNextActivePlayer: (
 
 **実装ノート**
 - 変更箇所: whileループにカウンタを追加。カウンタが`players.length`に達したら-1を返す
-- 呼び出し元の影響: -1返却は既存フローで安全。`advancePhase`内の`firstToAct`計算ではshowdownフェーズで`activePlayerIndex: -1`が設定されるため整合する。`handleAction`内の`nextActive`計算では、到達前に`isRoundOver`で全員フォールドが検出されるため-1に到達しない
+
+**呼び出し元への影響分析**
+
+-1返却は既存のゲームフローにおいて安全である。以下に呼び出し元ごとの分析を示す:
+
+| 呼び出し元 | 使用箇所 | -1返却時の影響 |
+|-----------|---------|--------------|
+| `advancePhase` (`useGameEngine.ts` L141) | `firstToAct`計算 | showdownフェーズでは`activePlayerIndex: -1`が設定される既存の挙動と整合する。showdown以外のフェーズでは全員フォールド状態に到達する前に`isRoundOver`でラウンド終了が検出されるため、-1が`firstToAct`に設定されることはない |
+| `handleAction` (`useGameEngine.ts` L189) | `nextActive`計算 | ここに到達する前に`isRoundOver`チェックで全員フォールドが検出され、ラウンド終了処理に分岐する。そのため-1が`nextActive`に設定されるパスは通常のゲームフローでは到達しない |
+
+結論: -1返却に対する呼び出し元での追加ガードは不要
 
 ---
 
@@ -274,7 +284,7 @@ export const dealCommunityCards: (
 |--------------|------------|------|
 | `applyAction` | `raiseAmount`が負値になるケース | `Math.max(0, ...)`ガードにより0に正規化。例外は発生しない |
 | `getNextActivePlayer` | 全プレイヤーが非アクティブ | -1を返す。呼び出し元の`advancePhase`ではshowdownフェーズの挙動と整合し、`handleAction`では`isRoundOver`により到達しない |
-| `dealCommunityCards` | デッキ枚数不足 | 52枚デッキで最大消費18枚（ホール10 + バーン3 + コミュニティ5）のため、通常のゲーム進行では発生しない |
+| `dealCommunityCards` | デッキ枚数不足 | 52枚デッキで最大消費18枚（ホール10 + バーン3 + コミュニティ5）のため、通常のゲーム進行では発生しない。万が一デッキ枚数が不足した場合、`deck.pop()`が`undefined`を返しコミュニティカードに`undefined`が混入する。本修正ではこの異常系のガードは追加しない（正常なゲーム進行を前提とし、デッキ管理の堅牢化は本スコープ外） |
 
 ## テスト戦略
 

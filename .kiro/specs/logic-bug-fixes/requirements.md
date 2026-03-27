@@ -24,8 +24,8 @@ UIの見た目に影響しないロジックバグを修正する。対象は以
 
 #### 受け入れ基準
 
-1. When `applyAction`にRaiseアクションが渡された場合, the ゲームロジック shall `raiseAmount`を0以上の値に制限する
-2. If `totalToPutIn`（Raise目標額）が`currentBet`（既にベット済みの額）より小さい場合, then the ゲームロジック shall `raiseAmount`を0として処理する
+1. When `applyAction`にRaiseアクションが渡された場合, the ゲームロジック shall Raise金額を負の値にせず、0以上の値として処理する
+2. If Raise目標額が既にベット済みの額より小さい場合, then the ゲームロジック shall 追加のRaise金額を0として処理し、チップの不正な増加を防ぐ
 3. When Raiseアクションが実行された場合, the ゲームロジック shall プレイヤーのチップ残高を減少させることはあっても増加させてはならない
 
 ### 要件 2: ストレート検出の明示的ソート (BUG-E1)
