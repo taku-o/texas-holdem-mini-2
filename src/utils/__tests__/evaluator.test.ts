@@ -1,7 +1,5 @@
 import { evaluateHand, HandRank } from '../evaluator'
-import type { Suit, Rank, PlayingCard } from '../../types'
-
-const card = (suit: Suit, rank: Rank): PlayingCard => ({ suit, rank })
+import { card } from '../../__tests__/helpers'
 
 const handTestCases = [
   {
