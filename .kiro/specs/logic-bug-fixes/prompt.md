@@ -95,6 +95,7 @@ think.
 
 
 takt --task "/kiro:spec-impl logic-bug-fixes 1"
+takt --task "/kiro:spec-impl logic-bug-fixes 2"
 
 
 

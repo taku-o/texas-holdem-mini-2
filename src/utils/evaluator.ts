@@ -70,7 +70,7 @@ export const evaluateHand = (holeCards: PlayingCard[], communityCards: PlayingCa
 
   // Find Straight
   const findStraight = (cardSet: PlayingCard[]): PlayingCard[] | null => {
-    const uniqueVals = [...new Set(cardSet.map(c => rankValues[c.rank]))];
+    const uniqueVals = [...new Set(cardSet.map(c => rankValues[c.rank]))].sort((a, b) => b - a);
     if (uniqueVals.includes(14)) uniqueVals.push(1); // Ace can act as 1
     
     for (let i = 0; i <= uniqueVals.length - 5; i++) {
