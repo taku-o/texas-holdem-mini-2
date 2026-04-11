@@ -422,6 +422,32 @@ describe('applyAction', () => {
       expect(result.updatedPlayers[0].currentBet).toBe(40)
       expect(result.newPot).toBe(120)
     })
+
+    test('既ベット額が目標額を超えている場合、追加Raise金額が0になる', () => {
+      // currentBet=50 が minRaise=40 (currentBet*2=20*2=40) を超えている
+      const players = createActivePlayers(3)
+      players[0].currentBet = 50
+      players[0].chips = 950
+
+      const result = applyAction(players, 0, 'raise', 30, 100, 20)
+
+      expect(result.updatedPlayers[0].chips).toBe(950)
+      expect(result.updatedPlayers[0].currentBet).toBe(50)
+      expect(result.newPot).toBe(100)
+    })
+
+    test('目標額と既ベット額が等しい場合、追加Raise金額が0になる', () => {
+      // currentBet=40 が minRaise=40 と一致 → 差分は 0
+      const players = createActivePlayers(3)
+      players[0].currentBet = 40
+      players[0].chips = 960
+
+      const result = applyAction(players, 0, 'raise', 40, 100, 20)
+
+      expect(result.updatedPlayers[0].chips).toBe(960)
+      expect(result.updatedPlayers[0].currentBet).toBe(40)
+      expect(result.newPot).toBe(100)
+    })
   })
 
   describe('不変性', () => {

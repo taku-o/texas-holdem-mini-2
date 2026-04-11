@@ -94,3 +94,8 @@ think.
   ションへの参照（「詳細はgetNextActivePlayerコンポーネント節の呼び出し元影響分析を参照」等）にすることで一元化できる。
 
 
+takt --task "/kiro:spec-impl logic-bug-fixes 1"
+
+
+
+

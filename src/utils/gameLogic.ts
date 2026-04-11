@@ -110,7 +110,7 @@ export const applyAction = (
     const minRaise = newCurrentBet === 0 ? BIG_BLIND : newCurrentBet * 2;
     const raiseAmount = Math.min(
       p.chips,
-      Math.max(minRaise, amount) - p.currentBet,
+      Math.max(0, minRaise - p.currentBet, amount - p.currentBet),
     );
     p.chips -= raiseAmount;
     p.currentBet += raiseAmount;
