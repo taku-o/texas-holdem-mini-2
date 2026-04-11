@@ -41,13 +41,15 @@ export interface WinnerResult {
 
 export const getNextActivePlayer = (currentIndex: number, players: Player[]): number => {
   let next = (currentIndex + 1) % players.length;
-  while (
-    next !== currentIndex &&
-    (!players[next].isActive || players[next].action === 'fold' || players[next].chips === 0)
-  ) {
+  let count = 0;
+  while (count < players.length) {
+    if (players[next].isActive && players[next].action !== 'fold' && players[next].chips > 0) {
+      return next;
+    }
     next = (next + 1) % players.length;
+    count++;
   }
-  return next;
+  return -1;
 };
 
 export const isRoundOver = (players: Player[], currentBet: number): boolean => {

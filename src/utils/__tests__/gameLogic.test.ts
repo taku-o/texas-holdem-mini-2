@@ -84,6 +84,75 @@ describe('getNextActivePlayer', () => {
 
     expect(result).toBe(0)
   })
+
+  test('全員がfold済みの場合、-1を返す', () => {
+    const players = createActivePlayers(4)
+    players[0].action = 'fold'
+    players[1].action = 'fold'
+    players[2].action = 'fold'
+    players[3].action = 'fold'
+
+    const result = getNextActivePlayer(0, players)
+
+    expect(result).toBe(-1)
+  })
+
+  test('全員がchips=0の場合、-1を返す', () => {
+    const players = createActivePlayers(4)
+    players[0].chips = 0
+    players[1].chips = 0
+    players[2].chips = 0
+    players[3].chips = 0
+
+    const result = getNextActivePlayer(0, players)
+
+    expect(result).toBe(-1)
+  })
+
+  test('全員がisActive=falseの場合、-1を返す', () => {
+    const players = createActivePlayers(4)
+    players[0].isActive = false
+    players[1].isActive = false
+    players[2].isActive = false
+    players[3].isActive = false
+
+    const result = getNextActivePlayer(0, players)
+
+    expect(result).toBe(-1)
+  })
+
+  test('全員が異なる理由で非アクティブの場合、-1を返す', () => {
+    const players = createActivePlayers(3)
+    players[0].action = 'fold'
+    players[1].isActive = false
+    players[2].chips = 0
+
+    const result = getNextActivePlayer(0, players)
+
+    expect(result).toBe(-1)
+  })
+
+  test('currentIndex以外の位置から探索開始しても全員非アクティブで-1を返す', () => {
+    const players = createActivePlayers(4)
+    players[0].action = 'fold'
+    players[1].action = 'fold'
+    players[2].action = 'fold'
+    players[3].action = 'fold'
+
+    const result = getNextActivePlayer(2, players)
+
+    expect(result).toBe(-1)
+  })
+
+  test('2人のプレイヤーで全員非アクティブの場合、-1を返す', () => {
+    const players = createActivePlayers(2)
+    players[0].chips = 0
+    players[1].action = 'fold'
+
+    const result = getNextActivePlayer(0, players)
+
+    expect(result).toBe(-1)
+  })
 })
 
 describe('isRoundOver', () => {
