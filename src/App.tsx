@@ -79,16 +79,18 @@ function App() {
             )
           })}
           {/* Controls shifted significantly to the right */}
-          <div className="absolute bottom-[-10px] sm:bottom-0 left-0 sm:left-8 md:left-12 z-50 transform origin-bottom-left scale-90 sm:scale-100 pb-8 sm:pb-0 pr-2 sm:pr-0">
-            <Controls 
-              isTurn={isTurn} 
-              callAmount={callAmount} 
-              minRaise={minRaise} 
-              onFold={() => handleAction('fold')}
-              onCheckCall={() => handleAction('call')}
-              onRaise={(amt) => handleAction('raise', amt)}
-            />
-          </div>
+          {state.phase !== 'showdown' && state.phase !== 'game-over' && (
+            <div className="absolute bottom-[-10px] sm:bottom-0 left-0 sm:left-8 md:left-12 z-50 transform origin-bottom-left scale-90 sm:scale-100 pb-8 sm:pb-0 pr-2 sm:pr-0">
+              <Controls
+                isTurn={isTurn}
+                callAmount={callAmount}
+                minRaise={minRaise}
+                onFold={() => handleAction('fold')}
+                onCheckCall={() => handleAction('call')}
+                onRaise={(amt) => handleAction('raise', amt)}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

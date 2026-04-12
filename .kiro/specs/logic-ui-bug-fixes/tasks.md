@@ -38,7 +38,7 @@
   - 変更後に`npm run test`および`npm run test:e2e`を実行して回帰がないことを確認する
   - _Requirements: 4.1, 4.2_
 
-- [ ] 3. (P) ショーダウン/ゲームオーバー時のControls非表示（BUG-U2）
+- [x] 3. (P) ショーダウン/ゲームオーバー時のControls非表示（BUG-U2）
   - `App.tsx`のControlsコンポーネントのレンダリングをフェーズベースの条件付きレンダリングに変更する
   - `{state.phase !== 'showdown' && state.phase !== 'game-over' && (<div ...><Controls ... /></div>)}`形式でDOMから削除する
   - `isTurn`ベースではなくフェーズベースで判定する（CPUターン中にControlsが消えないようにするため）
