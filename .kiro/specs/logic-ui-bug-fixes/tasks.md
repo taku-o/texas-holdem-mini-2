@@ -2,8 +2,8 @@
 
 ## タスク一覧
 
-- [ ] 1. useGameEngineのフェーズ遷移リファクタリング（BUG-G2 + BUG-G6）
-- [ ] 1.1 `startNextHand`をsetState関数形式に変換する
+- [x] 1. useGameEngineのフェーズ遷移リファクタリング（BUG-G2 + BUG-G6）
+- [x] 1.1 `startNextHand`をsetState関数形式に変換する
   - `startNextHand`のシグネチャを`(currentPlayers, currentDealer) => void`から`() => void`に変更し、`setState(s => { ... })`形式で最新の`players`と`dealerIndex`を参照するように書き換える
   - `useCallback([], ...)`でラップして参照安定性を確保する
   - `startGame`からの呼び出しも、`setState`で初期状態をセットした後に`setTimeout(() => startNextHand(), 500)`形式に変更する
@@ -11,7 +11,7 @@
   - 変更後に`npm run test`および`npm run test:e2e`を実行して回帰がないことを確認する
   - _Requirements: 2.1_
 
-- [ ] 1.2 `advancePhase`をsetState関数形式に変換し、ショーダウン処理を統合する
+- [x] 1.2 `advancePhase`をsetState関数形式に変換し、ショーダウン処理を統合する
   - `advancePhase`のシグネチャを`(s: GameState) => void`から`() => void`に変更し、`setState(s => { return newState })`形式で最新stateを参照するように書き換える
   - `useCallback([startNextHand])`でラップして参照安定性を確保する
   - river→showdown遷移時に、setState updater内で`determineWinner`による勝者判定、チップ加算、pot=0化を実行する
@@ -21,7 +21,7 @@
   - 変更後に`npm run test`および`npm run test:e2e`を実行して回帰がないことを確認する
   - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.2, 2.3_
 
-- [ ] 1.3 `handleAction`のネストsetState解消と依存配列修正（BUG-G2 + BUG-G3）
+- [x] 1.3 `handleAction`のネストsetState解消と依存配列修正（BUG-G2 + BUG-G3）
   - `handleAction`内のsetStateコールバックからの`advancePhase`呼び出しを、`setTimeout(() => advancePhase(), 500)`形式に変更してネストsetStateを解消する
   - ラウンド終了時の中間状態更新で`activePlayerIndex: -1`を返すようにする
   - 全員フォールド時の`startNextHand`呼び出しも引数なしの形式に変更する
@@ -30,7 +30,7 @@
   - 変更後に`npm run test`および`npm run test:e2e`を実行して回帰がないことを確認する
   - _Requirements: 1.1, 1.4, 3.1, 3.2, 3.3_
 
-- [ ] 2. (P) オールインプレイヤーのカード表示修正（BUG-U1）
+- [x] 2. (P) オールインプレイヤーのカード表示修正（BUG-U1）
   - `Player.tsx`のCardコンポーネントの`faceUp`プロップ条件から`player.action === 'all-in'`を削除する
   - 変更前: `faceUp={player.isHuman || player.action === 'all-in' || revealCards}`
   - 変更後: `faceUp={player.isHuman || revealCards}`

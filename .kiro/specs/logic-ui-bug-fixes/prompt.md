@@ -26,6 +26,7 @@ Critical Issuesは修正して。
 
 takt --task "/kiro:spec-impl logic-ui-bug-fixes 1"
 takt --task "/kiro:spec-impl logic-ui-bug-fixes 2"
+
 takt --task "/kiro:spec-impl logic-ui-bug-fixes 3"
 takt --task "/kiro:spec-impl logic-ui-bug-fixes 4"
 takt --task "/kiro:spec-impl logic-ui-bug-fixes 5"
