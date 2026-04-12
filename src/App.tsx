@@ -41,7 +41,6 @@ function App() {
   const callAmount = human ? Math.max(0, state.currentBet - human.currentBet) : 0;
   const minRaise = state.currentBet > 0 ? state.currentBet * 2 : 20;
 
-  // re-arrange players so human is always at bottom center, mapped to positions
   const getMappedPlayers = () => {
     if (humanIndex === -1) return state.players;
     const mapped = [];
@@ -55,7 +54,6 @@ function App() {
   return (
     <div className="min-h-[100dvh] w-full p-4 sm:p-8 flex flex-col items-center justify-between overflow-x-hidden relative">
       
-      {/* Logs at top */}
       <div data-testid="action-logs" className="absolute top-4 left-4 z-50 pointer-events-none opacity-70 text-xs sm:text-sm">
          {state.logs.slice(0, 3).map((log, idx) => (
             <div key={idx} className={idx === 0 ? "text-white font-bold" : "text-white/50"}>{log}</div>
@@ -63,7 +61,6 @@ function App() {
       </div>
 
       <div className="w-full flex-grow flex flex-col items-center justify-center">
-        {/* Table wrapper with further reduced top margin */}
         <div className="w-full max-w-[800px] relative mt-0 sm:mt-6 mb-20 sm:mb-24 flex-shrink-0">
           <Table communityCards={state.communityCards} pot={state.pot} phase={state.phase} />
           
@@ -79,7 +76,6 @@ function App() {
               />
             )
           })}
-          {/* Controls shifted significantly to the right */}
           {isPlayablePhase && (
             <div className="absolute bottom-[-10px] sm:bottom-0 left-0 sm:left-8 md:left-12 z-50 transform origin-bottom-left scale-90 sm:scale-100 pb-8 sm:pb-0 pr-2 sm:pr-0">
               <Controls
