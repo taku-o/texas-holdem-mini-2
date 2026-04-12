@@ -36,7 +36,8 @@ function App() {
 
   const humanIndex = state.players.findIndex(p => p.isHuman);
   const human = state.players[humanIndex];
-  const isTurn = state.activePlayerIndex === humanIndex && state.phase !== 'showdown' && state.phase !== 'game-over';
+  const isPlayablePhase = state.phase !== 'showdown' && state.phase !== 'game-over';
+  const isTurn = state.activePlayerIndex === humanIndex && isPlayablePhase;
   const callAmount = human ? Math.max(0, state.currentBet - human.currentBet) : 0;
   const minRaise = state.currentBet > 0 ? state.currentBet * 2 : 20;
 
@@ -79,7 +80,7 @@ function App() {
             )
           })}
           {/* Controls shifted significantly to the right */}
-          {state.phase !== 'showdown' && state.phase !== 'game-over' && (
+          {isPlayablePhase && (
             <div className="absolute bottom-[-10px] sm:bottom-0 left-0 sm:left-8 md:left-12 z-50 transform origin-bottom-left scale-90 sm:scale-100 pb-8 sm:pb-0 pr-2 sm:pr-0">
               <Controls
                 isTurn={isTurn}

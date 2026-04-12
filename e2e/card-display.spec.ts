@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { CARD_FACE_UP_SELECTOR, HUMAN_HAND_CARD_COUNT } from './constants';
-import { findPlayerIds, startGame } from './helpers';
+import { CARD_FACE_UP_SELECTOR, HUMAN_HAND_CARD_COUNT, GAME_FLOW_TEST_TIMEOUT, FLOP_CARD_COUNT } from './constants';
+import { findPlayerIds, startGame, advanceToPhaseOrShowdown, advanceToShowdown } from './helpers';
 
 test.describe('カード表示', () => {
   let humanId: string;
@@ -34,6 +34,35 @@ test.describe('カード表示', () => {
 
       const faceUpCards = cardsContainer.locator(CARD_FACE_UP_SELECTOR);
       await expect(faceUpCards).toHaveCount(0);
+    }
+  });
+
+  test('ゲーム進行中のオールインCPUカードが裏面である (4.4)', async ({ page }) => {
+    test.setTimeout(GAME_FLOW_TEST_TIMEOUT);
+
+    // flopまで進行し、途中でshowdownに到達した場合は検証をスキップ
+    const result = await advanceToPhaseOrShowdown(page, FLOP_CARD_COUNT);
+    if (result === 'showdown') return;
+
+    // 各CPUプレイヤーのカードが裏面であることを検証（ALL-INバッジの有無に関わらず）
+    for (const cpuId of cpuIds) {
+      const cardsContainer = page.getByTestId(`player-cards-${cpuId}`);
+      const faceUpCards = cardsContainer.locator(CARD_FACE_UP_SELECTOR);
+      // ALL-INバッジの有無に関わらず、ショーダウン前のCPUカードは全て裏面
+      await expect(faceUpCards).toHaveCount(0);
+    }
+  });
+
+  test('ショーダウン時に全CPUカードが表面表示される (4.5)', async ({ page }) => {
+    test.setTimeout(GAME_FLOW_TEST_TIMEOUT);
+
+    await advanceToShowdown(page);
+
+    // ショーダウン到達後、全CPUプレイヤーのカードが表面表示されていること
+    for (const cpuId of cpuIds) {
+      const cardsContainer = page.getByTestId(`player-cards-${cpuId}`);
+      const faceUpCards = cardsContainer.locator(CARD_FACE_UP_SELECTOR);
+      await expect(faceUpCards).toHaveCount(HUMAN_HAND_CARD_COUNT);
     }
   });
 

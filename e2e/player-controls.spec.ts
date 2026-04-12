@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { TESTID_CONTROLS, DISABLED_OPACITY } from './constants';
-import { findPlayerIds, startGame, waitForControlsReady } from './helpers';
+import { TESTID_CONTROLS, DISABLED_OPACITY, GAME_FLOW_TEST_TIMEOUT } from './constants';
+import { findPlayerIds, startGame, waitForControlsReady, advanceToShowdown } from './helpers';
 
 test.describe('プレイヤー操作', () => {
   let humanId: string;
@@ -48,5 +48,20 @@ test.describe('プレイヤー操作', () => {
   test('Raiseボタンの金額テキストに数値が含まれる (5.5)', async ({ page }) => {
     const raiseBtn = page.getByRole('button', { name: /Raise/ });
     await expect(raiseBtn).toHaveText(/\d+/);
+  });
+
+  test('ショーダウン時にControls要素がDOMに存在しない (5.6)', async ({ page }) => {
+    test.setTimeout(GAME_FLOW_TEST_TIMEOUT);
+
+    await advanceToShowdown(page);
+
+    // ショーダウン到達後、Controls要素がDOMから削除されていること
+    const controls = page.getByTestId(TESTID_CONTROLS);
+    await expect(controls).toHaveCount(0);
+
+    // 個別のボタンもDOMに存在しないこと
+    await expect(page.getByRole('button', { name: 'Fold' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /Check|Call/ })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /Raise/ })).toHaveCount(0);
   });
 });

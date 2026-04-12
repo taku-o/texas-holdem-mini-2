@@ -16,6 +16,11 @@ import type { GamePhase, GameState } from '../utils/gameLogic';
 
 export type { GamePhase, GameState };
 
+const BETTING_PHASES: ReadonlySet<GamePhase> = new Set(['pre-flop', 'flop', 'turn', 'river']);
+
+const SHOWDOWN_DISPLAY_DELAY = 5000;
+const PHASE_ADVANCE_DELAY = 500;
+
 export const useGameEngine = () => {
   const [state, setState] = useState<GameState>({
     players: [],
@@ -84,8 +89,6 @@ export const useGameEngine = () => {
   }, []);
 
   const advancePhase = useCallback(() => {
-    let reachedShowdown = false;
-
     setState(prev => {
       let newPhase: GamePhase = prev.phase;
 
@@ -116,8 +119,6 @@ export const useGameEngine = () => {
           const wpIdx = updatedPlayers.findIndex(p => p.id === winResult.winnerId);
           updatedPlayers[wpIdx] = { ...updatedPlayers[wpIdx], chips: updatedPlayers[wpIdx].chips + winAmount };
 
-          reachedShowdown = true;
-
           return {
             ...prev,
             players: updatedPlayers,
@@ -142,11 +143,7 @@ export const useGameEngine = () => {
         activePlayerIndex: newPhase === 'showdown' ? -1 : getNextActivePlayer(prev.dealerIndex, resetPlayers)
       };
     });
-
-    if (reachedShowdown) {
-      setTimeout(() => startNextHand(), 5000);
-    }
-  }, [startNextHand]);
+  }, []);
 
   const startGame = useCallback(() => {
     const humanIndex = Math.floor(Math.random() * 5);
@@ -178,9 +175,6 @@ export const useGameEngine = () => {
   }, [startNextHand]);
 
   const handleAction = useCallback((action: 'fold'|'call'|'raise', amount: number = 0) => {
-    let shouldStartNextHand = false;
-    let shouldAdvancePhase = false;
-
     setState(prev => {
       if (prev.phase === 'showdown' || prev.phase === 'game-over') return prev;
 
@@ -194,7 +188,6 @@ export const useGameEngine = () => {
         const updatedWinner = { ...winner, chips: winner.chips + newPot };
         newPlayers[newPlayers.findIndex(p => p.id === winner.id)] = updatedWinner;
 
-        shouldStartNextHand = true;
         return {
           ...prev,
           players: newPlayers,
@@ -214,21 +207,27 @@ export const useGameEngine = () => {
       };
 
       if (isRoundOver(newPlayers, newCurrentBet)) {
-        shouldAdvancePhase = true;
         return { ...updatedState, activePlayerIndex: -1 };
       } else {
         const nextActive = getNextActivePlayer(pIndex, newPlayers);
         return { ...updatedState, activePlayerIndex: nextActive };
       }
     });
+  }, []);
 
-    if (shouldStartNextHand) {
-      setTimeout(() => startNextHand(), 3000);
+  useEffect(() => {
+    if (state.activePlayerIndex === -1 && BETTING_PHASES.has(state.phase)) {
+      const timer = setTimeout(() => advancePhase(), PHASE_ADVANCE_DELAY);
+      return () => clearTimeout(timer);
     }
-    if (shouldAdvancePhase) {
-      setTimeout(() => advancePhase(), 500);
+  }, [state.activePlayerIndex, state.phase, advancePhase]);
+
+  useEffect(() => {
+    if (state.phase === 'showdown') {
+      const timer = setTimeout(() => startNextHand(), SHOWDOWN_DISPLAY_DELAY);
+      return () => clearTimeout(timer);
     }
-  }, [advancePhase, startNextHand]);
+  }, [state.phase, startNextHand]);
 
   useEffect(() => {
     if (state.activePlayerIndex !== -1) {
