@@ -128,6 +128,35 @@ export const applyAction = (
   return { updatedPlayers, newPot, newCurrentBet, logMessage };
 };
 
+export interface DealCommunityCardsResult {
+  newCommunityCards: PlayingCard[];
+  newDeck: PlayingCard[];
+}
+
+export const dealCommunityCards = (
+  phase: GamePhase,
+  communityCards: PlayingCard[],
+  deck: PlayingCard[],
+): DealCommunityCardsResult => {
+  const newDeck = [...deck];
+  const newCommunityCards = [...communityCards];
+
+  const burnAndDeal = (count: number) => {
+    newDeck.pop(); // burn
+    for (let i = 0; i < count; i++) {
+      newCommunityCards.push(newDeck.pop()!);
+    }
+  };
+
+  if (phase === 'pre-flop') {
+    burnAndDeal(3);
+  } else if (phase === 'flop' || phase === 'turn') {
+    burnAndDeal(1);
+  }
+
+  return { newCommunityCards, newDeck };
+};
+
 export const determineWinner = (players: Player[], communityCards: PlayingCard[]): WinnerResult => {
   const activePlayers = players.filter(p => p.isActive && p.action !== 'fold');
 

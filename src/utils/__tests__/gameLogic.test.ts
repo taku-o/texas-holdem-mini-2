@@ -5,6 +5,7 @@ import {
   calculateBlinds,
   applyAction,
   determineWinner,
+  dealCommunityCards,
   INITIAL_CHIPS,
   BIG_BLIND,
 } from '../gameLogic'
@@ -632,5 +633,151 @@ describe('determineWinner', () => {
 
     expect(result.winnerId).toBe('p0')
     expect(result.handRankName).toBe('One Pair')
+  })
+})
+
+describe('dealCommunityCards', () => {
+  const createDeck = (count: number): PlayingCard[] =>
+    Array.from({ length: count }, (_, i) =>
+      card(
+        (['hearts', 'diamonds', 'clubs', 'spades'] as const)[i % 4],
+        (['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'] as const)[i % 13],
+      ),
+    )
+
+  describe('pre-flop → flop', () => {
+    test('バーン1枚 + コミュニティカード3枚 = デッキから4枚消費する', () => {
+      const deck = createDeck(44)
+      const communityCards: PlayingCard[] = []
+
+      const result = dealCommunityCards('pre-flop', communityCards, deck)
+
+      expect(result.newDeck).toHaveLength(40)
+      expect(result.newCommunityCards).toHaveLength(3)
+    })
+
+    test('バーンカードはコミュニティカードに含まれない', () => {
+      const deck = createDeck(44)
+      const burnCard = deck[deck.length - 1]
+      const communityCards: PlayingCard[] = []
+
+      const result = dealCommunityCards('pre-flop', communityCards, deck)
+
+      const hasBurnCard = result.newCommunityCards.some(
+        c => c.suit === burnCard.suit && c.rank === burnCard.rank,
+      )
+      expect(hasBurnCard).toBe(false)
+    })
+
+    test('デッキ末尾からバーン→配布の順でカードが取られる', () => {
+      const deck = createDeck(44)
+      // deck.pop() の順: deck[43](burn), deck[42], deck[41], deck[40]
+      const expectedCards = [deck[42], deck[41], deck[40]]
+      const communityCards: PlayingCard[] = []
+
+      const result = dealCommunityCards('pre-flop', communityCards, deck)
+
+      expect(result.newCommunityCards).toEqual(expectedCards)
+    })
+  })
+
+  describe('flop → turn', () => {
+    test('バーン1枚 + コミュニティカード1枚 = デッキから2枚消費する', () => {
+      const deck = createDeck(40)
+      const communityCards = createDeck(3)
+
+      const result = dealCommunityCards('flop', communityCards, deck)
+
+      expect(result.newDeck).toHaveLength(38)
+      expect(result.newCommunityCards).toHaveLength(4)
+    })
+
+    test('既存のコミュニティカードが保持され、新しいカードが追加される', () => {
+      const deck = createDeck(40)
+      const communityCards = [card('hearts', 'A'), card('diamonds', 'K'), card('clubs', 'Q')]
+
+      const result = dealCommunityCards('flop', communityCards, deck)
+
+      expect(result.newCommunityCards[0]).toEqual(card('hearts', 'A'))
+      expect(result.newCommunityCards[1]).toEqual(card('diamonds', 'K'))
+      expect(result.newCommunityCards[2]).toEqual(card('clubs', 'Q'))
+    })
+
+    test('バーンカードはコミュニティカードに含まれない', () => {
+      const deck = createDeck(40)
+      const burnCard = deck[deck.length - 1]
+      const communityCards = createDeck(3)
+
+      const result = dealCommunityCards('flop', communityCards, deck)
+
+      const newCard = result.newCommunityCards[3]
+      const isBurnCard = newCard.suit === burnCard.suit && newCard.rank === burnCard.rank
+      expect(isBurnCard).toBe(false)
+    })
+  })
+
+  describe('turn → river', () => {
+    test('バーン1枚 + コミュニティカード1枚 = デッキから2枚消費する', () => {
+      const deck = createDeck(38)
+      const communityCards = createDeck(4)
+
+      const result = dealCommunityCards('turn', communityCards, deck)
+
+      expect(result.newDeck).toHaveLength(36)
+      expect(result.newCommunityCards).toHaveLength(5)
+    })
+
+    test('既存の4枚のコミュニティカードが保持される', () => {
+      const deck = createDeck(38)
+      const communityCards = [
+        card('hearts', 'A'),
+        card('diamonds', 'K'),
+        card('clubs', 'Q'),
+        card('spades', 'J'),
+      ]
+
+      const result = dealCommunityCards('turn', communityCards, deck)
+
+      expect(result.newCommunityCards.slice(0, 4)).toEqual(communityCards)
+      expect(result.newCommunityCards).toHaveLength(5)
+    })
+  })
+
+  describe('river → showdown', () => {
+    test('カード変更なし: コミュニティカードもデッキも変化しない', () => {
+      const deck = createDeck(36)
+      const communityCards = createDeck(5)
+
+      const result = dealCommunityCards('river', communityCards, deck)
+
+      expect(result.newDeck).toHaveLength(36)
+      expect(result.newCommunityCards).toHaveLength(5)
+      expect(result.newCommunityCards).toEqual(communityCards)
+      expect(result.newDeck).toEqual(deck)
+    })
+  })
+
+  describe('不変性', () => {
+    test('元のdeck配列を変更しない', () => {
+      const deck = createDeck(44)
+      const originalLength = deck.length
+      const originalLastCard = { ...deck[deck.length - 1] }
+      const communityCards: PlayingCard[] = []
+
+      dealCommunityCards('pre-flop', communityCards, deck)
+
+      expect(deck).toHaveLength(originalLength)
+      expect(deck[deck.length - 1]).toEqual(originalLastCard)
+    })
+
+    test('元のcommunityCards配列を変更しない', () => {
+      const deck = createDeck(40)
+      const communityCards = [card('hearts', 'A'), card('diamonds', 'K'), card('clubs', 'Q')]
+      const originalLength = communityCards.length
+
+      dealCommunityCards('flop', communityCards, deck)
+
+      expect(communityCards).toHaveLength(originalLength)
+    })
   })
 })

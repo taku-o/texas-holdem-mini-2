@@ -10,6 +10,7 @@ import {
   calculateBlinds,
   applyAction,
   determineWinner,
+  dealCommunityCards,
 } from '../utils/gameLogic';
 import type { GamePhase, GameState } from '../utils/gameLogic';
 
@@ -116,21 +117,18 @@ export const useGameEngine = () => {
 
   const advancePhase = (s: GameState) => {
     let newPhase: GamePhase = s.phase;
-    let newComm = [...s.communityCards];
-    let newDeck = [...s.deck];
 
     if (s.phase === 'pre-flop') {
       newPhase = 'flop';
-      newComm.push(newDeck.pop()!, newDeck.pop()!, newDeck.pop()!);
     } else if (s.phase === 'flop') {
       newPhase = 'turn';
-      newComm.push(newDeck.pop()!);
     } else if (s.phase === 'turn') {
       newPhase = 'river';
-      newComm.push(newDeck.pop()!);
     } else if (s.phase === 'river') {
       newPhase = 'showdown';
     }
+
+    const { newCommunityCards, newDeck } = dealCommunityCards(s.phase, s.communityCards, s.deck);
 
     const resetPlayers = s.players.map(p => ({
       ...p,
@@ -143,7 +141,7 @@ export const useGameEngine = () => {
     setState({
       ...s,
       players: resetPlayers,
-      communityCards: newComm,
+      communityCards: newCommunityCards,
       deck: newDeck,
       phase: newPhase,
       currentBet: 0,
