@@ -31,7 +31,7 @@ export const useGameEngine = () => {
 
   const startNextHand = useCallback(() => {
     setState(prevState => {
-      let players: Player[] = prevState.players.map(p => ({
+      const players: Player[] = prevState.players.map(p => ({
         ...p,
         cards: [],
         currentBet: 0,

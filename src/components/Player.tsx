@@ -17,7 +17,7 @@ export const Player: React.FC<PlayerProps> = ({ player, positionClass, isCurrent
       <div data-testid={`player-cards-${player.id}`} className="flex -space-x-4 mb-1 z-10 mt-1">
         {player.cards.map((card, i) => (
           <div key={i} className="transform hover:-translate-y-2 transition-transform shadow-lg rounded-lg">
-            <Card card={card} faceUp={player.isHuman || player.action === 'all-in' || revealCards} />
+            <Card card={card} faceUp={player.isHuman || revealCards} />
           </div>
         ))}
         {/* Placeholder if no cards */}
