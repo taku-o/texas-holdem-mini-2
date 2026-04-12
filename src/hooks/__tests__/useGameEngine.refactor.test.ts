@@ -496,6 +496,54 @@ describe('タスク2.3: 外部 API インターフェースの維持', () => {
   })
 })
 
+describe('コード品質: setState updater 内に setTimeout 禁止', () => {
+  test('setState の updater 関数内で setTimeout を呼び出していない', async () => {
+    const fs = await import('fs')
+    const path = await import('path')
+    const filePath = path.resolve(__dirname, '../useGameEngine.ts')
+    const content = fs.readFileSync(filePath, 'utf-8')
+
+    // setState( の後から対応する ); までの updater 本体を抽出し、
+    // その中に setTimeout が含まれていないことを確認する。
+    // 簡易チェック: setState(prev => { ... setTimeout ... }) パターンを検出
+    const setStateBlocks: { start: number; snippet: string }[] = []
+    const lines = content.split('\n')
+
+    let inUpdater = false
+    let braceDepth = 0
+    let blockStart = 0
+    let blockLines: string[] = []
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+      if (!inUpdater && /setState\(\s*(\w+|\([^)]*\))\s*=>/.test(line)) {
+        inUpdater = true
+        braceDepth = 0
+        blockStart = i + 1
+        blockLines = []
+      }
+      if (inUpdater) {
+        blockLines.push(line)
+        for (const ch of line) {
+          if (ch === '{') braceDepth++
+          if (ch === '}') braceDepth--
+        }
+        if (braceDepth <= 0 && blockLines.length > 1) {
+          setStateBlocks.push({ start: blockStart, snippet: blockLines.join('\n') })
+          inUpdater = false
+          blockLines = []
+        }
+      }
+    }
+
+    const violations = setStateBlocks
+      .filter(b => /setTimeout\s*\(/.test(b.snippet))
+      .map(b => `line ${b.start}`)
+
+    expect(violations).toEqual([])
+  })
+})
+
 describe('コード品質: What コメント禁止', () => {
   test('useGameEngine.ts に What コメント（// で始まる行コメント）が存在しない（ディレクティブコメントは除外）', async () => {
     const fs = await import('fs')

@@ -16,6 +16,11 @@ import type { GamePhase, GameState } from '../utils/gameLogic';
 
 export type { GamePhase, GameState };
 
+const BETTING_PHASES: ReadonlySet<GamePhase> = new Set(['pre-flop', 'flop', 'turn', 'river']);
+
+const SHOWDOWN_DISPLAY_DELAY = 5000;
+const PHASE_ADVANCE_DELAY = 500;
+
 export const useGameEngine = () => {
   const [state, setState] = useState<GameState>({
     players: [],
@@ -29,9 +34,116 @@ export const useGameEngine = () => {
     logs: []
   });
 
-  const appendLog = (msg: string) => {
-    setState(s => ({ ...s, logs: [msg, ...s.logs].slice(0, 10) }));
-  };
+  const startNextHand = useCallback(() => {
+    setState(prevState => {
+      const players: Player[] = prevState.players.map(p => ({
+        ...p,
+        cards: [],
+        currentBet: 0,
+        action: null,
+        role: null,
+        isActive: p.chips > 0
+      }));
+
+      const activeCount = players.filter(p => p.isActive).length;
+      if (activeCount <= 1) {
+        return { ...prevState, phase: 'game-over', logs: ['Game Over!'] };
+      }
+
+      const deck = createAndShuffleDeck();
+      const blinds = calculateBlinds(players, prevState.dealerIndex);
+
+      players[blinds.dealerIndex].role = 'dealer';
+      players[blinds.smallBlindIndex].role = 'sb';
+      players[blinds.bigBlindIndex].role = 'bb';
+
+      let pot = 0;
+      const postBlind = (idx: number, amount: number) => {
+        const actual = Math.min(players[idx].chips, amount);
+        players[idx].chips -= actual;
+        players[idx].currentBet += actual;
+        pot += actual;
+      };
+      postBlind(blinds.smallBlindIndex, SMALL_BLIND);
+      postBlind(blinds.bigBlindIndex, BIG_BLIND);
+
+      for (let i = 0; i < 2; i++) {
+        players.forEach(p => {
+          if (p.isActive) p.cards.push(deck.pop()!);
+        });
+      }
+
+      return {
+        ...prevState,
+        players,
+        communityCards: [],
+        deck,
+        pot,
+        currentBet: BIG_BLIND,
+        phase: 'pre-flop',
+        activePlayerIndex: blinds.utgIndex,
+        dealerIndex: blinds.dealerIndex,
+        logs: ['New hand started.', `Dealer is ${players[blinds.dealerIndex].name}`]
+      };
+    });
+  }, []);
+
+  const advancePhase = useCallback(() => {
+    setState(prev => {
+      let newPhase: GamePhase = prev.phase;
+
+      if (prev.phase === 'pre-flop') {
+        newPhase = 'flop';
+      } else if (prev.phase === 'flop') {
+        newPhase = 'turn';
+      } else if (prev.phase === 'turn') {
+        newPhase = 'river';
+      } else if (prev.phase === 'river') {
+        newPhase = 'showdown';
+      }
+
+      const { newCommunityCards, newDeck } = dealCommunityCards(prev.phase, prev.communityCards, prev.deck);
+
+      const resetPlayers = prev.players.map(p => ({
+        ...p,
+        currentBet: 0,
+        action: (p.action === 'fold' || p.action === 'all-in') ? p.action : null
+      }));
+
+      if (newPhase === 'showdown') {
+        const activePlayers = resetPlayers.filter(p => p.isActive && p.action !== 'fold');
+        if (activePlayers.length > 1) {
+          const winResult = determineWinner(resetPlayers, newCommunityCards);
+          const winAmount = prev.pot;
+          const updatedPlayers = [...resetPlayers];
+          const wpIdx = updatedPlayers.findIndex(p => p.id === winResult.winnerId);
+          updatedPlayers[wpIdx] = { ...updatedPlayers[wpIdx], chips: updatedPlayers[wpIdx].chips + winAmount };
+
+          return {
+            ...prev,
+            players: updatedPlayers,
+            communityCards: newCommunityCards,
+            deck: newDeck,
+            phase: 'showdown',
+            pot: 0,
+            currentBet: 0,
+            activePlayerIndex: -1,
+            logs: [`${winResult.winnerName} wins $${winAmount} with ${winResult.handRankName}`, ...prev.logs].slice(0, 10)
+          };
+        }
+      }
+
+      return {
+        ...prev,
+        players: resetPlayers,
+        communityCards: newCommunityCards,
+        deck: newDeck,
+        phase: newPhase,
+        currentBet: 0,
+        activePlayerIndex: newPhase === 'showdown' ? -1 : getNextActivePlayer(prev.dealerIndex, resetPlayers)
+      };
+    });
+  }, []);
 
   const startGame = useCallback(() => {
     const humanIndex = Math.floor(Math.random() * 5);
@@ -59,95 +171,8 @@ export const useGameEngine = () => {
       logs: ['Game started!']
     });
 
-    setTimeout(() => startNextHand(initialPlayers, -1), 500);
-  }, []);
-
-  const startNextHand = (currentPlayers: Player[], currentDealer: number) => {
-    let players: Player[] = currentPlayers.map(p => ({
-      ...p,
-      cards: [],
-      currentBet: 0,
-      action: null,
-      role: null,
-      isActive: p.chips > 0
-    }));
-
-    const activeCount = players.filter(p => p.isActive).length;
-    if (activeCount <= 1) {
-      setState(s => ({ ...s, phase: 'game-over', logs: ['Game Over!'] }));
-      return;
-    }
-
-    const deck = createAndShuffleDeck();
-    const blinds = calculateBlinds(players, currentDealer);
-
-    players[blinds.dealerIndex].role = 'dealer';
-    players[blinds.smallBlindIndex].role = 'sb';
-    players[blinds.bigBlindIndex].role = 'bb';
-
-    let pot = 0;
-    const postBlind = (idx: number, amount: number) => {
-      const actual = Math.min(players[idx].chips, amount);
-      players[idx].chips -= actual;
-      players[idx].currentBet += actual;
-      pot += actual;
-    };
-    postBlind(blinds.smallBlindIndex, SMALL_BLIND);
-    postBlind(blinds.bigBlindIndex, BIG_BLIND);
-
-    for (let i = 0; i < 2; i++) {
-       players.forEach(p => {
-         if (p.isActive) p.cards.push(deck.pop()!);
-       });
-    }
-
-    setState(s => ({
-      ...s,
-      players,
-      communityCards: [],
-      deck,
-      pot,
-      currentBet: BIG_BLIND,
-      phase: 'pre-flop',
-      activePlayerIndex: blinds.utgIndex,
-      dealerIndex: blinds.dealerIndex,
-      logs: ['New hand started.', `Dealer is ${players[blinds.dealerIndex].name}`]
-    }));
-  };
-
-  const advancePhase = (s: GameState) => {
-    let newPhase: GamePhase = s.phase;
-
-    if (s.phase === 'pre-flop') {
-      newPhase = 'flop';
-    } else if (s.phase === 'flop') {
-      newPhase = 'turn';
-    } else if (s.phase === 'turn') {
-      newPhase = 'river';
-    } else if (s.phase === 'river') {
-      newPhase = 'showdown';
-    }
-
-    const { newCommunityCards, newDeck } = dealCommunityCards(s.phase, s.communityCards, s.deck);
-
-    const resetPlayers = s.players.map(p => ({
-      ...p,
-      currentBet: 0,
-      action: (p.action === 'fold' || p.action === 'all-in') ? p.action : null
-    }));
-
-    const firstToAct = getNextActivePlayer(s.dealerIndex, resetPlayers);
-
-    setState({
-      ...s,
-      players: resetPlayers,
-      communityCards: newCommunityCards,
-      deck: newDeck,
-      phase: newPhase,
-      currentBet: 0,
-      activePlayerIndex: newPhase === 'showdown' ? -1 : firstToAct
-    });
-  };
+    setTimeout(() => startNextHand(), 500);
+  }, [startNextHand]);
 
   const handleAction = useCallback((action: 'fold'|'call'|'raise', amount: number = 0) => {
     setState(prev => {
@@ -155,66 +180,54 @@ export const useGameEngine = () => {
 
       const pIndex = prev.activePlayerIndex;
       const result = applyAction(prev.players, pIndex, action, amount, prev.pot, prev.currentBet);
-      const { updatedPlayers: newPlayers, newPot, newCurrentBet, logMessage: logMsg } = result;
+      const { updatedPlayers: newPlayers, newPot, newCurrentBet, logMessage } = result;
 
-      const notFolded = newPlayers.filter(pl => pl.isActive && pl.action !== 'fold');
+      const notFolded = newPlayers.filter(p => p.isActive && p.action !== 'fold');
       if (notFolded.length === 1) {
         const winner = notFolded[0];
         const updatedWinner = { ...winner, chips: winner.chips + newPot };
-        newPlayers[newPlayers.findIndex(pl => pl.id === winner.id)] = updatedWinner;
+        newPlayers[newPlayers.findIndex(p => p.id === winner.id)] = updatedWinner;
 
-        setTimeout(() => startNextHand(newPlayers, prev.dealerIndex), 3000);
         return {
           ...prev,
           players: newPlayers,
           pot: 0,
           phase: 'showdown',
           activePlayerIndex: -1,
-          logs: [logMsg, `${updatedWinner.name} wins $${newPot} (others folded)!`, ...prev.logs].slice(0, 10)
+          logs: [logMessage, `${updatedWinner.name} wins $${newPot} (others folded)!`, ...prev.logs].slice(0, 10)
         };
       }
 
+      const updatedState = {
+        ...prev,
+        players: newPlayers,
+        pot: newPot,
+        currentBet: newCurrentBet,
+        logs: [logMessage, ...prev.logs].slice(0, 10)
+      };
+
       if (isRoundOver(newPlayers, newCurrentBet)) {
-         setTimeout(() => {
-           setState(s => {
-             const nextState = { ...s, players: newPlayers, pot: newPot, currentBet: newCurrentBet, logs: [logMsg, ...s.logs].slice(0,10) };
-             advancePhase(nextState);
-             return s;
-           });
-         }, 500);
-         return { ...prev, players: newPlayers, pot: newPot, currentBet: newCurrentBet, activePlayerIndex: -1, logs: [logMsg, ...prev.logs].slice(0,10) };
+        return { ...updatedState, activePlayerIndex: -1 };
       } else {
         const nextActive = getNextActivePlayer(pIndex, newPlayers);
-        return { ...prev, players: newPlayers, pot: newPot, currentBet: newCurrentBet, activePlayerIndex: nextActive, logs: [logMsg, ...prev.logs].slice(0,10) };
+        return { ...updatedState, activePlayerIndex: nextActive };
       }
     });
   }, []);
 
   useEffect(() => {
-    if (state.phase === 'showdown') {
-      const activePlayers = state.players.filter(p => p.isActive && p.action !== 'fold');
-      if (activePlayers.length > 1) {
-        const winResult = determineWinner(state.players, state.communityCards);
-        const winAmount = state.pot;
-
-        appendLog(`${winResult.winnerName} wins $${winAmount} with ${winResult.handRankName}`);
-
-        setState(s => {
-          const newPlayers = [...s.players];
-          const wpIdx = newPlayers.findIndex(p => p.id === winResult.winnerId);
-          newPlayers[wpIdx] = { ...newPlayers[wpIdx], chips: newPlayers[wpIdx].chips + winAmount };
-          return { ...s, players: newPlayers, pot: 0 };
-        });
-
-        setTimeout(() => {
-          setState(s => {
-            startNextHand(s.players, s.dealerIndex);
-            return s;
-          });
-        }, 5000);
-      }
+    if (state.activePlayerIndex === -1 && BETTING_PHASES.has(state.phase)) {
+      const timer = setTimeout(() => advancePhase(), PHASE_ADVANCE_DELAY);
+      return () => clearTimeout(timer);
     }
-  }, [state.phase]);
+  }, [state.activePlayerIndex, state.phase, advancePhase]);
+
+  useEffect(() => {
+    if (state.phase === 'showdown') {
+      const timer = setTimeout(() => startNextHand(), SHOWDOWN_DISPLAY_DELAY);
+      return () => clearTimeout(timer);
+    }
+  }, [state.phase, startNextHand]);
 
   useEffect(() => {
     if (state.activePlayerIndex !== -1) {

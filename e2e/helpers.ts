@@ -8,6 +8,10 @@ import {
   TESTID_CONTROLS,
   CARD_FACE_UP_SELECTOR,
   SHOWDOWN_PHASE_TEXT,
+  FLOP_CARD_COUNT,
+  TURN_CARD_COUNT,
+  RIVER_CARD_COUNT,
+  UNREACHABLE_CARD_COUNT,
 } from './constants';
 
 export interface PlayerIds {
@@ -102,8 +106,11 @@ export async function advanceToPhaseOrShowdown(
     // pointer-events が none でないことで判定（opacity チェックより確実）
     const controlsReady = expect(controls).not.toHaveCSS('pointer-events', 'none', { timeout: PHASE_WAIT_TIMEOUT })
       .then(() => 'controls' as const);
+    // BUG-U2修正: showdown/game-overでControlsがDOMから削除される場合の検出
+    const controlsGone = expect(controls).toHaveCount(0, { timeout: PHASE_WAIT_TIMEOUT })
+      .then(() => 'showdown' as const);
 
-    const result = await Promise.any([cardsReached, showdown, controlsReady])
+    const result = await Promise.any([cardsReached, showdown, controlsReady, controlsGone])
       .catch((err: unknown) => {
         const reasons = err instanceof AggregateError ? err.errors.map(String).join('; ') : String(err);
         throw new Error(`Game state timeout: no phase transition detected (${reasons})`);
@@ -115,9 +122,28 @@ export async function advanceToPhaseOrShowdown(
     const checkCallBtn = page.getByRole('button', { name: /Check|Call/ });
     await checkCallBtn.click();
 
-    // アクション実行後、コントロールが無効化されるのを待つ（次のループで誤検知しないため）
-    await expect(controls).toHaveCSS('pointer-events', 'none', { timeout: PHASE_WAIT_TIMEOUT });
+    // アクション実行後、コントロールが無効化またはDOMから削除されるのを待つ
+    await Promise.any([
+      expect(controls).toHaveCSS('pointer-events', 'none', { timeout: PHASE_WAIT_TIMEOUT }),
+      expect(controls).toHaveCount(0, { timeout: PHASE_WAIT_TIMEOUT }),
+    ]);
   }
 
   throw new Error(`advanceToPhaseOrShowdown: exceeded maximum ${MAX_ADVANCE_ROUNDS} rounds without reaching target phase or showdown`);
+}
+
+/**
+ * ゲームをショーダウンまで確実に進行させる。
+ * flop→turn→river→showdown の順にフェーズを進行し、途中でshowdownに到達した場合はそこで終了する。
+ */
+export async function advanceToShowdown(page: Page): Promise<void> {
+  const phaseTargets = [FLOP_CARD_COUNT, TURN_CARD_COUNT, RIVER_CARD_COUNT] as const;
+
+  for (const target of phaseTargets) {
+    const result = await advanceToPhaseOrShowdown(page, target);
+    if (result === 'showdown') return;
+  }
+
+  // river到達後の最終ベッティングラウンド。到達不可能なカード枚数を指定しshowdownまで進行。
+  await advanceToPhaseOrShowdown(page, UNREACHABLE_CARD_COUNT);
 }
