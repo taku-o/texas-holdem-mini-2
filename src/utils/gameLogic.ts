@@ -41,13 +41,15 @@ export interface WinnerResult {
 
 export const getNextActivePlayer = (currentIndex: number, players: Player[]): number => {
   let next = (currentIndex + 1) % players.length;
-  while (
-    next !== currentIndex &&
-    (!players[next].isActive || players[next].action === 'fold' || players[next].chips === 0)
-  ) {
+  let count = 0;
+  while (count < players.length) {
+    if (players[next].isActive && players[next].action !== 'fold' && players[next].chips > 0) {
+      return next;
+    }
     next = (next + 1) % players.length;
+    count++;
   }
-  return next;
+  return -1;
 };
 
 export const isRoundOver = (players: Player[], currentBet: number): boolean => {
@@ -110,7 +112,7 @@ export const applyAction = (
     const minRaise = newCurrentBet === 0 ? BIG_BLIND : newCurrentBet * 2;
     const raiseAmount = Math.min(
       p.chips,
-      Math.max(minRaise, amount) - p.currentBet,
+      Math.max(0, minRaise - p.currentBet, amount - p.currentBet),
     );
     p.chips -= raiseAmount;
     p.currentBet += raiseAmount;
@@ -124,6 +126,35 @@ export const applyAction = (
   updatedPlayers[playerIndex] = p;
 
   return { updatedPlayers, newPot, newCurrentBet, logMessage };
+};
+
+export interface DealCommunityCardsResult {
+  newCommunityCards: PlayingCard[];
+  newDeck: PlayingCard[];
+}
+
+export const dealCommunityCards = (
+  phase: GamePhase,
+  communityCards: PlayingCard[],
+  deck: PlayingCard[],
+): DealCommunityCardsResult => {
+  const newDeck = [...deck];
+  const newCommunityCards = [...communityCards];
+
+  const burnAndDeal = (count: number) => {
+    newDeck.pop(); // burn
+    for (let i = 0; i < count; i++) {
+      newCommunityCards.push(newDeck.pop()!);
+    }
+  };
+
+  if (phase === 'pre-flop') {
+    burnAndDeal(3);
+  } else if (phase === 'flop' || phase === 'turn') {
+    burnAndDeal(1);
+  }
+
+  return { newCommunityCards, newDeck };
 };
 
 export const determineWinner = (players: Player[], communityCards: PlayingCard[]): WinnerResult => {

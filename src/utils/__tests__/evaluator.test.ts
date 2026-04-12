@@ -166,3 +166,41 @@ describe('0枚入力', () => {
     expect(result.rankName).toBe('None')
   })
 })
+
+describe('ストレート検出の入力順序非依存（BUG-E1）', () => {
+  test('ソートされていないカード配列でストレートが検出される', () => {
+    // Given: 意図的に非降順で並べたストレート構成カード (6-7-8-9-10)
+    const holeCards = [card('hearts', '6'), card('diamonds', '10')]
+    const communityCards = [card('clubs', '8'), card('spades', '7'), card('hearts', '9')]
+
+    // When
+    const result = evaluateHand(holeCards, communityCards)
+
+    // Then
+    expect(result.rank).toBe(HandRank.Straight)
+  })
+
+  test('ソートされていないカードでストレートフラッシュが検出される', () => {
+    // Given: 同一スートで意図的に非降順で並べたカード (5-6-7-8-9 of spades)
+    const holeCards = [card('spades', '7'), card('spades', '5')]
+    const communityCards = [card('spades', '9'), card('spades', '6'), card('spades', '8')]
+
+    // When
+    const result = evaluateHand(holeCards, communityCards)
+
+    // Then
+    expect(result.rank).toBe(HandRank.StraightFlush)
+  })
+
+  test('ソートされていないカードでホイールストレートが検出される', () => {
+    // Given: A-2-3-4-5 を非降順で配置
+    const holeCards = [card('diamonds', '3'), card('hearts', 'A')]
+    const communityCards = [card('clubs', '5'), card('spades', '2'), card('hearts', '4')]
+
+    // When
+    const result = evaluateHand(holeCards, communityCards)
+
+    // Then
+    expect(result.rank).toBe(HandRank.Straight)
+  })
+})

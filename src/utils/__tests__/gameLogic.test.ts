@@ -5,6 +5,7 @@ import {
   calculateBlinds,
   applyAction,
   determineWinner,
+  dealCommunityCards,
   INITIAL_CHIPS,
   BIG_BLIND,
 } from '../gameLogic'
@@ -83,6 +84,75 @@ describe('getNextActivePlayer', () => {
     const result = getNextActivePlayer(0, players)
 
     expect(result).toBe(0)
+  })
+
+  test('全員がfold済みの場合、-1を返す', () => {
+    const players = createActivePlayers(4)
+    players[0].action = 'fold'
+    players[1].action = 'fold'
+    players[2].action = 'fold'
+    players[3].action = 'fold'
+
+    const result = getNextActivePlayer(0, players)
+
+    expect(result).toBe(-1)
+  })
+
+  test('全員がchips=0の場合、-1を返す', () => {
+    const players = createActivePlayers(4)
+    players[0].chips = 0
+    players[1].chips = 0
+    players[2].chips = 0
+    players[3].chips = 0
+
+    const result = getNextActivePlayer(0, players)
+
+    expect(result).toBe(-1)
+  })
+
+  test('全員がisActive=falseの場合、-1を返す', () => {
+    const players = createActivePlayers(4)
+    players[0].isActive = false
+    players[1].isActive = false
+    players[2].isActive = false
+    players[3].isActive = false
+
+    const result = getNextActivePlayer(0, players)
+
+    expect(result).toBe(-1)
+  })
+
+  test('全員が異なる理由で非アクティブの場合、-1を返す', () => {
+    const players = createActivePlayers(3)
+    players[0].action = 'fold'
+    players[1].isActive = false
+    players[2].chips = 0
+
+    const result = getNextActivePlayer(0, players)
+
+    expect(result).toBe(-1)
+  })
+
+  test('currentIndex以外の位置から探索開始しても全員非アクティブで-1を返す', () => {
+    const players = createActivePlayers(4)
+    players[0].action = 'fold'
+    players[1].action = 'fold'
+    players[2].action = 'fold'
+    players[3].action = 'fold'
+
+    const result = getNextActivePlayer(2, players)
+
+    expect(result).toBe(-1)
+  })
+
+  test('2人のプレイヤーで全員非アクティブの場合、-1を返す', () => {
+    const players = createActivePlayers(2)
+    players[0].chips = 0
+    players[1].action = 'fold'
+
+    const result = getNextActivePlayer(0, players)
+
+    expect(result).toBe(-1)
   })
 })
 
@@ -422,6 +492,32 @@ describe('applyAction', () => {
       expect(result.updatedPlayers[0].currentBet).toBe(40)
       expect(result.newPot).toBe(120)
     })
+
+    test('既ベット額が目標額を超えている場合、追加Raise金額が0になる', () => {
+      // currentBet=50 が minRaise=40 (currentBet*2=20*2=40) を超えている
+      const players = createActivePlayers(3)
+      players[0].currentBet = 50
+      players[0].chips = 950
+
+      const result = applyAction(players, 0, 'raise', 30, 100, 20)
+
+      expect(result.updatedPlayers[0].chips).toBe(950)
+      expect(result.updatedPlayers[0].currentBet).toBe(50)
+      expect(result.newPot).toBe(100)
+    })
+
+    test('目標額と既ベット額が等しい場合、追加Raise金額が0になる', () => {
+      // currentBet=40 が minRaise=40 と一致 → 差分は 0
+      const players = createActivePlayers(3)
+      players[0].currentBet = 40
+      players[0].chips = 960
+
+      const result = applyAction(players, 0, 'raise', 40, 100, 20)
+
+      expect(result.updatedPlayers[0].chips).toBe(960)
+      expect(result.updatedPlayers[0].currentBet).toBe(40)
+      expect(result.newPot).toBe(100)
+    })
   })
 
   describe('不変性', () => {
@@ -537,5 +633,151 @@ describe('determineWinner', () => {
 
     expect(result.winnerId).toBe('p0')
     expect(result.handRankName).toBe('One Pair')
+  })
+})
+
+describe('dealCommunityCards', () => {
+  const createDeck = (count: number): PlayingCard[] =>
+    Array.from({ length: count }, (_, i) =>
+      card(
+        (['hearts', 'diamonds', 'clubs', 'spades'] as const)[i % 4],
+        (['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'] as const)[i % 13],
+      ),
+    )
+
+  describe('pre-flop → flop', () => {
+    test('バーン1枚 + コミュニティカード3枚 = デッキから4枚消費する', () => {
+      const deck = createDeck(44)
+      const communityCards: PlayingCard[] = []
+
+      const result = dealCommunityCards('pre-flop', communityCards, deck)
+
+      expect(result.newDeck).toHaveLength(40)
+      expect(result.newCommunityCards).toHaveLength(3)
+    })
+
+    test('バーンカードはコミュニティカードに含まれない', () => {
+      const deck = createDeck(44)
+      const burnCard = deck[deck.length - 1]
+      const communityCards: PlayingCard[] = []
+
+      const result = dealCommunityCards('pre-flop', communityCards, deck)
+
+      const hasBurnCard = result.newCommunityCards.some(
+        c => c.suit === burnCard.suit && c.rank === burnCard.rank,
+      )
+      expect(hasBurnCard).toBe(false)
+    })
+
+    test('デッキ末尾からバーン→配布の順でカードが取られる', () => {
+      const deck = createDeck(44)
+      // deck.pop() の順: deck[43](burn), deck[42], deck[41], deck[40]
+      const expectedCards = [deck[42], deck[41], deck[40]]
+      const communityCards: PlayingCard[] = []
+
+      const result = dealCommunityCards('pre-flop', communityCards, deck)
+
+      expect(result.newCommunityCards).toEqual(expectedCards)
+    })
+  })
+
+  describe('flop → turn', () => {
+    test('バーン1枚 + コミュニティカード1枚 = デッキから2枚消費する', () => {
+      const deck = createDeck(40)
+      const communityCards = createDeck(3)
+
+      const result = dealCommunityCards('flop', communityCards, deck)
+
+      expect(result.newDeck).toHaveLength(38)
+      expect(result.newCommunityCards).toHaveLength(4)
+    })
+
+    test('既存のコミュニティカードが保持され、新しいカードが追加される', () => {
+      const deck = createDeck(40)
+      const communityCards = [card('hearts', 'A'), card('diamonds', 'K'), card('clubs', 'Q')]
+
+      const result = dealCommunityCards('flop', communityCards, deck)
+
+      expect(result.newCommunityCards[0]).toEqual(card('hearts', 'A'))
+      expect(result.newCommunityCards[1]).toEqual(card('diamonds', 'K'))
+      expect(result.newCommunityCards[2]).toEqual(card('clubs', 'Q'))
+    })
+
+    test('バーンカードはコミュニティカードに含まれない', () => {
+      const deck = createDeck(40)
+      const burnCard = deck[deck.length - 1]
+      const communityCards = createDeck(3)
+
+      const result = dealCommunityCards('flop', communityCards, deck)
+
+      const newCard = result.newCommunityCards[3]
+      const isBurnCard = newCard.suit === burnCard.suit && newCard.rank === burnCard.rank
+      expect(isBurnCard).toBe(false)
+    })
+  })
+
+  describe('turn → river', () => {
+    test('バーン1枚 + コミュニティカード1枚 = デッキから2枚消費する', () => {
+      const deck = createDeck(38)
+      const communityCards = createDeck(4)
+
+      const result = dealCommunityCards('turn', communityCards, deck)
+
+      expect(result.newDeck).toHaveLength(36)
+      expect(result.newCommunityCards).toHaveLength(5)
+    })
+
+    test('既存の4枚のコミュニティカードが保持される', () => {
+      const deck = createDeck(38)
+      const communityCards = [
+        card('hearts', 'A'),
+        card('diamonds', 'K'),
+        card('clubs', 'Q'),
+        card('spades', 'J'),
+      ]
+
+      const result = dealCommunityCards('turn', communityCards, deck)
+
+      expect(result.newCommunityCards.slice(0, 4)).toEqual(communityCards)
+      expect(result.newCommunityCards).toHaveLength(5)
+    })
+  })
+
+  describe('river → showdown', () => {
+    test('カード変更なし: コミュニティカードもデッキも変化しない', () => {
+      const deck = createDeck(36)
+      const communityCards = createDeck(5)
+
+      const result = dealCommunityCards('river', communityCards, deck)
+
+      expect(result.newDeck).toHaveLength(36)
+      expect(result.newCommunityCards).toHaveLength(5)
+      expect(result.newCommunityCards).toEqual(communityCards)
+      expect(result.newDeck).toEqual(deck)
+    })
+  })
+
+  describe('不変性', () => {
+    test('元のdeck配列を変更しない', () => {
+      const deck = createDeck(44)
+      const originalLength = deck.length
+      const originalLastCard = { ...deck[deck.length - 1] }
+      const communityCards: PlayingCard[] = []
+
+      dealCommunityCards('pre-flop', communityCards, deck)
+
+      expect(deck).toHaveLength(originalLength)
+      expect(deck[deck.length - 1]).toEqual(originalLastCard)
+    })
+
+    test('元のcommunityCards配列を変更しない', () => {
+      const deck = createDeck(40)
+      const communityCards = [card('hearts', 'A'), card('diamonds', 'K'), card('clubs', 'Q')]
+      const originalLength = communityCards.length
+
+      dealCommunityCards('flop', communityCards, deck)
+
+      expect(communityCards).toHaveLength(originalLength)
+    })
   })
 })
