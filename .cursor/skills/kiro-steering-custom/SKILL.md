@@ -1,7 +1,10 @@
 ---
+name: kiro-steering-custom
 description: Create custom steering documents for specialized project contexts
-allowed-tools: Bash, Read, Write, Edit, MultiEdit, Glob, Grep, LS
+metadata:
+  shared-rules: "steering-principles.md"
 ---
+
 
 # Kiro Custom Steering Creation
 
@@ -17,6 +20,13 @@ allowed-tools: Bash, Read, Write, Edit, MultiEdit, Glob, Grep, LS
 </background_information>
 
 <instructions>
+### Step 1: Gather Context
+
+If steering context is already available from conversation, skip redundant file reads.
+Otherwise:
+- Check `.kiro/settings/templates/steering-custom/` for available templates
+- Read `rules/steering-principles.md` from this skill's directory for steering principles
+
 ## Workflow
 
 1. **Ask user** for custom steering needs:
@@ -28,13 +38,20 @@ allowed-tools: Bash, Read, Write, Edit, MultiEdit, Glob, Grep, LS
    - Use as starting point, customize based on project
 
 3. **Analyze codebase** (JIT) for relevant patterns:
-   - **Glob** for related files
-   - **Read** for existing implementations
-   - **Grep** for specific patterns
+
+#### Parallel Research
+
+The following research areas are independent and can be executed in parallel:
+1. **Template & principles**: Load matching template and steering-principles.md
+2. **Domain patterns**: Analyze codebase for domain-specific patterns using Glob/Grep/Read
+
+If multi-agent is enabled, spawn sub-agents for each area above. Otherwise execute sequentially.
+
+After all parallel research completes, synthesize findings for steering document.
 
 4. **Generate custom steering**:
    - Follow template structure if available
-   - Apply principles from `.kiro/settings/rules/steering-principles.md`
+   - Apply principles from `rules/steering-principles.md` from this skill's directory
    - Focus on patterns, not exhaustive lists
    - Keep to 100-200 lines (2-3 minute read)
 
@@ -56,7 +73,7 @@ Load template when needed, customize for project.
 
 ## Steering Principles
 
-From `.kiro/settings/rules/steering-principles.md`:
+From `rules/steering-principles.md` (in this skill's directory):
 
 - **Patterns over lists**: Document patterns, not every file/component
 - **Single domain**: One topic per file
@@ -71,7 +88,7 @@ From `.kiro/settings/rules/steering-principles.md`:
 - **Read**: Load template, analyze existing code
 - **Glob**: Find related files for pattern analysis
 - **Grep**: Search for specific patterns
-- **LS**: Understand relevant structure
+- **Bash** with `ls`: Understand relevant structure
 
 **JIT Strategy**: Load template only when creating that type of steering.
 
@@ -125,3 +142,4 @@ Review and customize as needed.
 - Custom files equally important as core files
 - Avoid documenting agent-specific tooling directories (e.g. `.cursor/`, `.gemini/`, `.claude/`)
 - Light references to `.kiro/specs/` and `.kiro/steering/` are acceptable; avoid other `.kiro/` directories
+
