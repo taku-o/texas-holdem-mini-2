@@ -1,7 +1,10 @@
 ---
+name: kiro-steering
 description: Manage .kiro/steering/ as persistent project knowledge
-allowed-tools: Bash, Read, Write, Edit, MultiEdit, Glob, Grep, LS
+metadata:
+  shared-rules: "steering-principles.md"
 ---
+
 
 # Kiro Steering Management
 
@@ -33,15 +36,24 @@ Check `.kiro/steering/` status:
 
 1. Load templates from `.kiro/settings/templates/steering/`
 2. Analyze codebase (JIT):
-   - `glob_file_search` for source files
-   - `read_file` for README, package.json, etc.
-   - `grep` for patterns
+
+#### Parallel Research
+
+The following research areas are independent and can be executed in parallel:
+1. **Product analysis**: README, package.json, documentation files for purpose, value, core capabilities
+2. **Tech analysis**: Config files, dependencies, frameworks for technology patterns and decisions
+3. **Structure analysis**: Directory tree, naming conventions, import patterns for organization
+
+If multi-agent is enabled, spawn sub-agents for each area above. Otherwise execute sequentially.
+
+After all parallel research completes, synthesize patterns for steering files.
+
 3. Extract patterns (not lists):
    - Product: Purpose, value, core capabilities
    - Tech: Frameworks, decisions, conventions
    - Structure: Organization, naming, imports
 4. Generate steering files (follow templates)
-5. Load principles from `.kiro/settings/rules/steering-principles.md`
+5. Load principles from `rules/steering-principles.md` from this skill's directory
 6. Present summary for review
 
 **Focus**: Patterns that guide decisions, not catalogs of files/dependencies.
@@ -65,7 +77,7 @@ Check `.kiro/steering/` status:
 
 ## Granularity Principle
 
-From `.kiro/settings/rules/steering-principles.md`:
+From `rules/steering-principles.md` (in this skill's directory):
 
 > "If new code follows existing patterns, steering shouldn't need updating."
 
@@ -78,10 +90,10 @@ Document patterns and principles, not exhaustive lists.
 
 ## Tool guidance
 
-- `glob_file_search`: Find source/config files
-- `read_file`: Read steering, docs, configs
-- `grep`: Search patterns
-- `list_dir`: Analyze structure
+- **Glob**: Find source/config files
+- **Read**: Read steering, docs, configs
+- **Grep**: Search patterns
+- **Bash** with `ls`: Analyze structure
 
 **JIT Strategy**: Fetch when needed, not upfront.
 
@@ -141,3 +153,4 @@ Review and approve as Source of Truth.
 - Avoid documenting agent-specific tooling directories (e.g. `.cursor/`, `.gemini/`, `.claude/`)
 - `.kiro/settings/` content should NOT be documented in steering files (settings are metadata, not project knowledge)
 - Light references to `.kiro/specs/` and `.kiro/steering/` are acceptable; avoid other `.kiro/` directories
+

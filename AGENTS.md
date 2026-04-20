@@ -2,6 +2,13 @@
 
 Kiro-style Spec-Driven Development on an agentic SDLC
 
+## Project Memory
+Project memory keeps persistent guidance (steering, specs notes, component docs) so Cursor honors your standards each run. Treat it as the long-lived source of truth for patterns, conventions, and decisions.
+
+- Use `.kiro/steering/` for project-wide policies: architecture principles, naming schemes, security constraints, tech stack decisions, api standards, etc.
+- Use local `AGENTS.md` files for feature or library context (e.g. `src/lib/payments/AGENTS.md`): describe domain assumptions, API contracts, or testing conventions specific to that folder.
+- Specs notes stay with each spec (under `.kiro/specs/`) to guide specification-level workflows.
+
 ## Project Context
 
 ### Paths
@@ -39,15 +46,13 @@ Kiro-style Spec-Driven Development on an agentic SDLC
 - Progress check: `/kiro-spec-status {feature}` (use anytime)
 
 ## Skills Structure
-Skills are located in `.claude/skills/kiro-*/SKILL.md`
+Skills are located in `.cursor/skills/kiro-*/SKILL.md`
 - Each skill is a directory with a `SKILL.md` file
-- Skills run inline with access to conversation context
-- Skills may delegate parallel research to subagents for efficiency
-- Additional files (templates, examples) can be added to skill directories
+- Invoke a skill directly with `/kiro-<skill-name>`
+- **If there is even a 1% chance a skill applies to the current task, invoke it.** Do not skip skills because the task seems simple.
 - `kiro-review` — task-local adversarial review protocol used by reviewer subagents
 - `kiro-debug` — root-cause-first debug protocol used by debugger subagents
 - `kiro-verify-completion` — fresh-evidence gate before success or completion claims
-- **If there is even a 1% chance a skill applies to the current task, invoke it.** Do not skip skills because the task seems simple.
 
 ## Development Rules
 - 3-phase approval workflow: Requirements → Design → Tasks → Implementation

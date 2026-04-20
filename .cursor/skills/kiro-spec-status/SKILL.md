@@ -1,37 +1,43 @@
 ---
+name: kiro-spec-status
 description: Show specification status and progress
-allowed-tools: Bash, Read, Glob, Write, Edit, MultiEdit, Update
-argument-hint: <feature-name>
 ---
+
 
 # Specification Status
 
 <background_information>
-- **Mission**: Display comprehensive status and progress for a specification
 - **Success Criteria**:
   - Show current phase and completion status
   - Identify next actions and blockers
   - Provide clear visibility into progress
+  - Surface boundary readiness, upstream/downstream context, and likely revalidation needs when available
 </background_information>
 
 <instructions>
-## Core Task
-Generate status report for feature **$1** showing progress across all phases.
-
 ## Execution Steps
 
 ### Step 1: Load Spec Context
 - Read `.kiro/specs/$1/spec.json` for metadata and phase status
+- Read `.kiro/specs/$1/brief.md` if it exists
 - Read existing files: `requirements.md`, `design.md`, `tasks.md` (if they exist)
 - Check `.kiro/specs/$1/` directory for available files
+- Read `.kiro/steering/roadmap.md` if it exists and this spec appears in it
 
 ### Step 2: Analyze Status
 
 **Parse each phase**:
 - **Requirements**: Count requirements and acceptance criteria
-- **Design**: Check for architecture, components, diagrams
+- **Design**: Check for architecture, components, diagrams, and whether boundary sections are present
 - **Tasks**: Count completed vs total tasks (parse `- [x]` vs `- [ ]`)
 - **Approvals**: Check approval status in spec.json
+- **Boundary context**:
+  - From brief.md: note `Boundary Candidates`, `Upstream / Downstream`, and `Existing Spec Touchpoints` if present
+  - From design.md: note `Boundary Commitments`, `Out of Boundary`, `Allowed Dependencies`, and `Revalidation Triggers` if present
+  - From roadmap.md: note upstream dependencies and whether this spec is adjacent to `Existing Spec Updates`
+- **Revalidation watchlist**:
+  - Identify downstream specs, neighboring existing-spec updates, or rollout-sensitive design notes that may need revalidation if this spec changes
+  - Call out when the current spec shape looks too broad and may want roadmap/design splitting instead of more local repair
 
 ### Step 3: Generate Report
 
@@ -39,32 +45,12 @@ Create report in the language specified in spec.json covering:
 1. **Current Phase & Progress**: Where the spec is in the workflow
 2. **Completion Status**: Percentage complete for each phase
 3. **Task Breakdown**: If tasks exist, show completed/remaining counts
-4. **Next Actions**: What needs to be done next
-5. **Blockers**: Any issues preventing progress
+4. **Boundary Context**: Upstream/downstream, out-of-boundary, and allowed dependency notes when available
+5. **Revalidation Watchlist**: Downstream or adjacent work likely affected by changes to this spec
+6. **Next Actions**: What needs to be done next
+7. **Blockers**: Any issues preventing progress
 
-## Critical Constraints
-- Use language from spec.json
-- Calculate accurate completion percentages
-- Identify specific next action commands
 </instructions>
-
-## Tool Guidance
-- **Read**: Load spec.json first, then other spec files as needed
-- **Parse carefully**: Extract completion data from tasks.md checkboxes
-- Use **Glob** to check which spec files exist
-
-## Output Description
-
-Provide status report in the language specified in spec.json:
-
-**Report Structure**:
-1. **Feature Overview**: Name, phase, last updated
-2. **Phase Status**: Requirements, Design, Tasks with completion %
-3. **Task Progress**: If tasks exist, show X/Y completed
-4. **Next Action**: Specific command to run next
-5. **Issues**: Any blockers or missing elements
-
-**Format**: Clear, scannable format with emojis (✅/⏳/❌) for status
 
 ## Safety & Fallback
 
