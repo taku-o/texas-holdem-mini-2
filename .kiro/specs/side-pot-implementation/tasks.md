@@ -36,7 +36,7 @@
 
 ## 2. Core: `calculateSidePots` 純粋関数（TDD）
 
-- [ ] 2.1 `calculateSidePots` の単体テストを先行作成する
+- [x] 2.1 `calculateSidePots` の単体テストを先行作成する
   - 全員同額ベットでポット数 1（要件 1.2）
   - 1人少額オールインでポット数 2、各ポット金額とeligible数の検証（要件 1.3, 1.4, 1.6）
   - 2人異額オールインでポット数 3、各ポット金額・eligible 数の検証（要件 1.5, 1.6）
@@ -48,7 +48,7 @@
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 4.1_
   - _Boundary: utils/__tests__/gameLogic.sidePot.test.ts_
 
-- [ ] 2.2 `calculateSidePots` を実装する
+- [x] 2.2 `calculateSidePots` を実装する
   - 2.1 で作成した全テストケース（全員同額・1人少額オールイン・2人異額オールイン・フォールド扱い・チップ保存・入力不変性）を満たす振る舞いを実装する
   - アルゴリズム詳細・擬似コード・端点ケースは design.md の「`calculateSidePots` アルゴリズム概要」セクションを参照する
   - 観測可能な完了: 2.1 で作成したすべてのテストが pass する

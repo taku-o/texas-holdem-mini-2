@@ -1,4 +1,4 @@
-import type { Player, PlayingCard } from '../types';
+import type { Player, PlayingCard, Pot } from '../types';
 import { evaluateHand } from './evaluator';
 
 export type GamePhase = 'idle' | 'pre-flop' | 'flop' | 'turn' | 'river' | 'showdown' | 'game-over';
@@ -177,4 +177,33 @@ export const determineWinner = (players: Player[], communityCards: PlayingCard[]
     winnerName: winner.player.name,
     handRankName: winner.eval.rankName,
   };
+};
+
+export const calculateSidePots = (players: Player[]): Pot[] => {
+  const contributors = players.filter(p => p.totalContribution > 0);
+
+  if (contributors.length === 0) return [];
+
+  const uniqueLevels = [...new Set(contributors.map(p => p.totalContribution))].sort((a, b) => a - b);
+
+  const pots: Pot[] = [];
+  let prevLevel = 0;
+  let remaining = contributors;
+
+  for (const level of uniqueLevels) {
+    const diff = level - prevLevel;
+    const amount = diff * remaining.length;
+    const eligiblePlayerIds = remaining
+      .filter(p => p.action !== 'fold')
+      .map(p => p.id);
+
+    if (amount > 0) {
+      pots.push({ amount, eligiblePlayerIds });
+    }
+
+    remaining = remaining.filter(p => p.totalContribution > level);
+    prevLevel = level;
+  }
+
+  return pots;
 };
