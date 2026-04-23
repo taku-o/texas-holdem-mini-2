@@ -152,6 +152,7 @@ export const useGameEngine = () => {
       name: i === humanIndex ? 'You (Player)' : `CPU ${i}`,
       chips: INITIAL_CHIPS,
       currentBet: 0,
+      totalContribution: 0,
       isActive: true,
       isHuman: i === humanIndex,
       cards: [],

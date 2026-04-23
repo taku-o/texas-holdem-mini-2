@@ -19,7 +19,7 @@
 
 ## 1. Foundation: データモデルとテストヘルパー
 
-- [ ] 1.1 Player 型に累積投入額フィールドを追加し、Pot 型を新設する
+- [x] 1.1 Player 型に累積投入額フィールドを追加し、Pot 型を新設する
   - Player 型に `totalContribution: number` を追加する
   - 新規型 `Pot { amount: number; eligiblePlayerIds: string[] }` を追加する
   - 型宣言ファイルが正しくエクスポートされ、既存の型参照箇所の TypeScript コンパイルが通る
@@ -27,7 +27,7 @@
   - _Requirements: 1.1, 1.6, 1.7_
   - _Boundary: types/index.ts_
 
-- [ ] 1.2 共通テストヘルパー `createPlayer` のデフォルト値を更新する
+- [x] 1.2 共通テストヘルパー `createPlayer` のデフォルト値を更新する
   - `createPlayer` のデフォルトに `totalContribution: 0` を含める
   - `createActivePlayers` 経由で生成されるプレイヤーも `totalContribution === 0` になる
   - 観測可能な完了: 既存の単体・統合テストがすべてコンパイルエラーなく通る

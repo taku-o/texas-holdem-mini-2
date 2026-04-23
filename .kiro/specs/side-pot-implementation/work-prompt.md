@@ -63,6 +63,11 @@ think.
   指摘、ただし既存パターンとの整合性も考慮）
   3. design.md の擬似コードを research.md へ移動、または「設計意図の説明 であり実装アルゴリズムではない」と注記（Agent 2 指摘）
 
+takt --task "/kiro-impl side-pot-implementation 1"
+/simplify-loop
+/kiro-validate-impl side-pot-implementation 1
+/kiro-complete-tasks side-pot-implementation 1
+commit
 
 
 
@@ -70,7 +75,5 @@ think.
 
 
 
-
-/kiro-impl
 
 
