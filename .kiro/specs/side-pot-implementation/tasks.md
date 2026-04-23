@@ -57,7 +57,7 @@
 
 ## 3. Core: `distributePots` 純粋関数（TDD）
 
-- [ ] 3.1 `distributePots` の単体テストを先行作成する
+- [x] 3.1 `distributePots` の単体テストを先行作成する
   - 単一ポット分配: 1ポット・1勝者 → 勝者 chips にポット額加算、チップ総量保存（要件 2.3, 2.5）
   - 複数ポット分配: オールインケースで勝者が各ポットで異なる → awards 要素数 = ポット数、チップ増加額 = 各 award の和（要件 2.1, 2.3）
   - 同スコア均等割り切れケース: 2 プレイヤー同スコア・pot 100 → 各 50、`sum(awards.amount) === 100`（要件 2.6）
@@ -69,7 +69,7 @@
   - _Requirements: 2.1, 2.2, 2.3, 2.5, 2.6, 4.1_
   - _Boundary: utils/__tests__/gameLogic.sidePot.test.ts_
 
-- [ ] 3.2 `distributePots` を実装する
+- [x] 3.2 `distributePots` を実装する
   - 3.1 で作成した全テストケース（単一ポット分配・複数ポット分配・同スコア均等・同スコア余りあり・3人タイ・入力不変性）を満たす振る舞いを実装する
   - 同スコア分配の順序ルール・契約・不変条件は design.md の「同スコア分配の順序ルール」および `distributePots` の Service Interface セクションを参照する
   - 観測可能な完了: 3.1 で作成したすべてのテストが pass する

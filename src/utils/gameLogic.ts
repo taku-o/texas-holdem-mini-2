@@ -179,6 +179,68 @@ export const determineWinner = (players: Player[], communityCards: PlayingCard[]
   };
 };
 
+export interface PotAward {
+  playerId: string;
+  playerName: string;
+  amount: number;
+  handRankName: string;
+}
+
+export interface DistributePotsResult {
+  updatedPlayers: Player[];
+  awards: PotAward[];
+}
+
+export const distributePots = (
+  pots: Pot[],
+  players: Player[],
+  communityCards: PlayingCard[],
+): DistributePotsResult => {
+  const currentPlayers = players.map(p => ({ ...p, cards: [...p.cards] }));
+  const awards: PotAward[] = [];
+
+  for (const pot of pots) {
+    const evaluated = players
+      .map((player, originalIndex) => ({ player, originalIndex }))
+      .filter(({ player }) => pot.eligiblePlayerIds.includes(player.id))
+      .map(({ player, originalIndex }) => ({
+        player,
+        originalIndex,
+        eval: evaluateHand(player.cards, communityCards),
+      }));
+
+    if (evaluated.length === 0) continue;
+
+    const maxScore = Math.max(...evaluated.map(e => e.eval.score));
+    const tiedWinners = evaluated
+      .filter(e => e.eval.score === maxScore)
+      .sort((a, b) => a.originalIndex - b.originalIndex);
+
+    const baseAmount = Math.floor(pot.amount / tiedWinners.length);
+    const remainder = pot.amount % tiedWinners.length;
+
+    for (let i = 0; i < tiedWinners.length; i++) {
+      const winner = tiedWinners[i];
+      const awardAmount = baseAmount + (i === 0 ? remainder : 0);
+
+      awards.push({
+        playerId: winner.player.id,
+        playerName: winner.player.name,
+        amount: awardAmount,
+        handRankName: winner.eval.rankName,
+      });
+
+      const playerIdx = currentPlayers.findIndex(p => p.id === winner.player.id);
+      currentPlayers[playerIdx] = {
+        ...currentPlayers[playerIdx],
+        chips: currentPlayers[playerIdx].chips + awardAmount,
+      };
+    }
+  }
+
+  return { updatedPlayers: currentPlayers, awards };
+};
+
 export const calculateSidePots = (players: Player[]): Pot[] => {
   const contributors = players.filter(p => p.totalContribution > 0);
 
