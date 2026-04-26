@@ -6,7 +6,8 @@ import {
   BIG_BLIND,
   calculateBlinds,
   dealCommunityCards,
-  determineWinner,
+  calculateSidePots,
+  distributePots,
   getNextActivePlayer,
   isRoundOver,
   applyAction,
@@ -25,6 +26,7 @@ const computeStartNextHand = (prevState: GameState): GameState | null => {
     ...p,
     cards: [],
     currentBet: 0,
+    totalContribution: 0,
     action: null,
     role: null,
     isActive: p.chips > 0,
@@ -47,6 +49,7 @@ const computeStartNextHand = (prevState: GameState): GameState | null => {
     const actual = Math.min(players[idx].chips, amount)
     players[idx].chips -= actual
     players[idx].currentBet += actual
+    players[idx].totalContribution += actual
     pot += actual
   }
   postBlind(blinds.smallBlindIndex, SMALL_BLIND)
@@ -96,23 +99,22 @@ const computeAdvancePhase = (s: GameState): { newState: GameState; reachedShowdo
   if (newPhase === 'showdown') {
     const activePlayers = resetPlayers.filter(p => p.isActive && p.action !== 'fold')
     if (activePlayers.length > 1) {
-      const winResult = determineWinner(resetPlayers, newCommunityCards)
-      const winAmount = s.pot
-      const updatedPlayers = [...resetPlayers]
-      const wpIdx = updatedPlayers.findIndex(p => p.id === winResult.winnerId)
-      updatedPlayers[wpIdx] = { ...updatedPlayers[wpIdx], chips: updatedPlayers[wpIdx].chips + winAmount }
+      const pots = calculateSidePots(resetPlayers)
+      const { updatedPlayers, awards } = distributePots(pots, resetPlayers, newCommunityCards)
+      const finalPlayers = updatedPlayers.map(p => ({ ...p, totalContribution: 0 }))
+      const awardLogs = awards.map(a => `${a.playerName} wins $${a.amount} with ${a.handRankName}`)
 
       return {
         newState: {
           ...s,
-          players: updatedPlayers,
+          players: finalPlayers,
           communityCards: newCommunityCards,
           deck: newDeck,
           phase: 'showdown',
           pot: 0,
           currentBet: 0,
           activePlayerIndex: -1,
-          logs: [`${winResult.winnerName} wins $${winAmount} with ${winResult.handRankName}`, ...s.logs].slice(0, 10),
+          logs: [...awardLogs, ...s.logs].slice(0, 10),
         },
         reachedShowdown: true,
       }
@@ -596,6 +598,7 @@ describe('タスク1.2: advancePhase の setState 関数形式変換 + ショー
           cards: [card('hearts', 'A'), card('hearts', 'K')],
           action: 'call',
           chips: INITIAL_CHIPS - 40,
+          totalContribution: 40,
         }),
         createPlayer({
           id: 'p1',
@@ -603,6 +606,7 @@ describe('タスク1.2: advancePhase の setState 関数形式変換 + ショー
           cards: [card('diamonds', '2'), card('clubs', '7')],
           action: 'call',
           chips: INITIAL_CHIPS - 40,
+          totalContribution: 40,
         }),
       ]
       const communityCards: PlayingCard[] = [
@@ -644,14 +648,16 @@ describe('タスク1.2: advancePhase の setState 関数形式変換 + ショー
           name: 'Player 0',
           cards: [card('hearts', 'A'), card('hearts', 'K')],
           action: 'call',
-          chips: INITIAL_CHIPS - 40,
+          chips: INITIAL_CHIPS - 60,
+          totalContribution: 60,
         }),
         createPlayer({
           id: 'p1',
           name: 'Player 1',
           cards: [card('diamonds', '2'), card('clubs', '7')],
           action: 'call',
-          chips: INITIAL_CHIPS - 40,
+          chips: INITIAL_CHIPS - 60,
+          totalContribution: 60,
         }),
       ]
       const communityCards: PlayingCard[] = [
@@ -689,12 +695,14 @@ describe('タスク1.2: advancePhase の setState 関数形式変換 + ショー
           name: 'Player 0',
           cards: [card('hearts', 'A'), card('hearts', 'K')],
           action: 'call',
+          totalContribution: 50,
         }),
         createPlayer({
           id: 'p1',
           name: 'Player 1',
           cards: [card('diamonds', '2'), card('clubs', '7')],
           action: 'call',
+          totalContribution: 50,
         }),
       ]
       const communityCards: PlayingCard[] = [
@@ -732,12 +740,14 @@ describe('タスク1.2: advancePhase の setState 関数形式変換 + ショー
           name: 'Player 0',
           cards: [card('hearts', 'A'), card('hearts', 'K')],
           action: 'call',
+          totalContribution: 50,
         }),
         createPlayer({
           id: 'p1',
           name: 'Player 1',
           cards: [card('diamonds', '2'), card('clubs', '7')],
           action: 'call',
+          totalContribution: 50,
         }),
       ]
       const communityCards: PlayingCard[] = [
@@ -777,12 +787,14 @@ describe('タスク1.2: advancePhase の setState 関数形式変換 + ショー
           name: 'Player 0',
           cards: [card('hearts', 'A'), card('hearts', 'K')],
           action: 'call',
+          totalContribution: 50,
         }),
         createPlayer({
           id: 'p1',
           name: 'Player 1',
           cards: [card('diamonds', '2'), card('clubs', '7')],
           action: 'call',
+          totalContribution: 50,
         }),
       ]
       const communityCards: PlayingCard[] = [
@@ -843,18 +855,21 @@ describe('タスク1.2: advancePhase の setState 関数形式変換 + ショー
           name: 'Player 0',
           cards: [card('hearts', 'A'), card('hearts', 'K')],
           action: 'fold',
+          totalContribution: 50,
         }),
         createPlayer({
           id: 'p1',
           name: 'Player 1',
           cards: [card('diamonds', '2'), card('clubs', '7')],
           action: 'call',
+          totalContribution: 50,
         }),
         createPlayer({
           id: 'p2',
           name: 'Player 2',
           cards: [card('spades', 'J'), card('clubs', 'J')],
           action: 'call',
+          totalContribution: 50,
         }),
       ]
       const communityCards: PlayingCard[] = [
@@ -903,12 +918,14 @@ describe('タスク1.2: advancePhase の setState 関数形式変換 + ショー
           name: 'Player 0',
           cards: [card('hearts', 'A'), card('hearts', 'K')],
           action: 'call',
+          totalContribution: 50,
         }),
         createPlayer({
           id: 'p1',
           name: 'Player 1',
           cards: [card('diamonds', '2'), card('clubs', '7')],
           action: 'call',
+          totalContribution: 50,
         }),
       ]
 

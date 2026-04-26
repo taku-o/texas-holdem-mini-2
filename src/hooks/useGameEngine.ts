@@ -9,7 +9,8 @@ import {
   isRoundOver,
   calculateBlinds,
   applyAction,
-  determineWinner,
+  calculateSidePots,
+  distributePots,
   dealCommunityCards,
 } from '../utils/gameLogic';
 import type { GamePhase, GameState } from '../utils/gameLogic';
@@ -40,6 +41,7 @@ export const useGameEngine = () => {
         ...p,
         cards: [],
         currentBet: 0,
+        totalContribution: 0,
         action: null,
         role: null,
         isActive: p.chips > 0
@@ -62,6 +64,7 @@ export const useGameEngine = () => {
         const actual = Math.min(players[idx].chips, amount);
         players[idx].chips -= actual;
         players[idx].currentBet += actual;
+        players[idx].totalContribution += actual;
         pot += actual;
       };
       postBlind(blinds.smallBlindIndex, SMALL_BLIND);
@@ -113,22 +116,21 @@ export const useGameEngine = () => {
       if (newPhase === 'showdown') {
         const activePlayers = resetPlayers.filter(p => p.isActive && p.action !== 'fold');
         if (activePlayers.length > 1) {
-          const winResult = determineWinner(resetPlayers, newCommunityCards);
-          const winAmount = prev.pot;
-          const updatedPlayers = [...resetPlayers];
-          const wpIdx = updatedPlayers.findIndex(p => p.id === winResult.winnerId);
-          updatedPlayers[wpIdx] = { ...updatedPlayers[wpIdx], chips: updatedPlayers[wpIdx].chips + winAmount };
+          const pots = calculateSidePots(resetPlayers);
+          const { updatedPlayers, awards } = distributePots(pots, resetPlayers, newCommunityCards);
+          const finalPlayers = updatedPlayers.map(p => ({ ...p, totalContribution: 0 }));
+          const awardLogs = awards.map(a => `${a.playerName} wins $${a.amount} with ${a.handRankName}`);
 
           return {
             ...prev,
-            players: updatedPlayers,
+            players: finalPlayers,
             communityCards: newCommunityCards,
             deck: newDeck,
             phase: 'showdown',
             pot: 0,
             currentBet: 0,
             activePlayerIndex: -1,
-            logs: [`${winResult.winnerName} wins $${winAmount} with ${winResult.handRankName}`, ...prev.logs].slice(0, 10)
+            logs: [...awardLogs, ...prev.logs].slice(0, 10)
           };
         }
       }
@@ -188,10 +190,11 @@ export const useGameEngine = () => {
         const winner = notFolded[0];
         const updatedWinner = { ...winner, chips: winner.chips + newPot };
         newPlayers[newPlayers.findIndex(p => p.id === winner.id)] = updatedWinner;
+        const finalPlayers = newPlayers.map(p => ({ ...p, totalContribution: 0 }));
 
         return {
           ...prev,
-          players: newPlayers,
+          players: finalPlayers,
           pot: 0,
           phase: 'showdown',
           activePlayerIndex: -1,

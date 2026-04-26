@@ -97,21 +97,21 @@
 
 ## 5. Integration: `useGameEngine` への組み込み
 
-- [ ] 5.1 `startGame` と `startNextHand` で `totalContribution` を 0 に初期化する
+- [x] 5.1 `startGame` と `startNextHand` で `totalContribution` を 0 に初期化する
   - `startGame` の `initialPlayers` に `totalContribution: 0` を含める
   - `startNextHand` の player リセットで `totalContribution: 0` を含める
   - 観測可能な完了: ハンド開始直後の state で全プレイヤーの `totalContribution === 0`
   - _Requirements: 1.1_
   - _Boundary: hooks/useGameEngine.ts_
 
-- [ ] 5.2 `postBlind` で `totalContribution` を加算する
+- [x] 5.2 `postBlind` で `totalContribution` を加算する
   - `useGameEngine` 内ローカル関数 `postBlind` を拡張し、`players[idx].totalContribution += actual` を追加
   - SB / BB 投入後の state で `totalContribution` が投入額と一致する
   - 観測可能な完了: ハンド開始直後の state で SB プレイヤーの `totalContribution === SMALL_BLIND`、BB プレイヤーの `totalContribution === BIG_BLIND` になり、かつ `state.pot === sum(players.totalContribution)` が成立
   - _Requirements: 1.1_
   - _Boundary: hooks/useGameEngine.ts_
 
-- [ ] 5.3 `advancePhase` の showdown 分岐を複数ポット分配に書き換える
+- [x] 5.3 `advancePhase` の showdown 分岐を複数ポット分配に書き換える
   - 既存の `determineWinner` 単一分配ロジックを削除
   - `calculateSidePots(resetPlayers)` で pots を取得し、`distributePots(pots, resetPlayers, newCommunityCards)` で分配する
   - 分配後に全プレイヤーの `totalContribution` を 0 にリセットする
@@ -124,7 +124,7 @@
   - _Depends: 2.2, 3.2_
   - _Coordinates-with: 5.4_
 
-- [ ] 5.4 `handleAction` の全員フォールド経路に `totalContribution` 0 リセットを追加する
+- [x] 5.4 `handleAction` の全員フォールド経路に `totalContribution` 0 リセットを追加する
   - 勝者への chips 加算後、全プレイヤーの `totalContribution` を 0 にリセットする
   - 既存の分配ロジック（単一勝者への `newPot` 加算）自体は変更しない
   - 5.3（advancePhase showdown 分岐）と**同一のリセット規約**を守ること。片方のみ対応するとUIに偽のサイドポットが `SHOWDOWN_DISPLAY_DELAY`（5000ms）残るため、両経路の一貫性は 5.5 統合テスト「showdown 両経路での `totalContribution === 0` かつ `state.pot === 0` 検証」で検証される
@@ -133,7 +133,7 @@
   - _Boundary: hooks/useGameEngine.ts_
   - _Coordinates-with: 5.3_
 
-- [ ] 5.5 統合テスト: 不変条件と分配フローを検証する
+- [x] 5.5 統合テスト: 不変条件と分配フローを検証する
   - `postBlind` + `applyAction` + `calculateSidePots` の累積計算フロー検証（要件 1.1, 1.8）
   - 複数ラウンドにわたる `totalContribution` 保持検証（要件 1.1）
   - オールインケースのショーダウン分配フロー、勝者 chips 増加 = 各ポット合算と一致（要件 2.3, 4.3）
