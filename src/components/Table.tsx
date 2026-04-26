@@ -1,14 +1,21 @@
 import React from 'react';
-import type { PlayingCard } from '../types';
+import type { PlayingCard, Pot } from '../types';
 import { Card } from './Card';
 
 interface TableProps {
   communityCards: PlayingCard[];
   pot: number;
+  pots: Pot[];
   phase: string;
 }
 
-export const Table: React.FC<TableProps> = ({ communityCards, pot, phase }) => {
+const getPotLabel = (index: number, totalSidePots: number): string => {
+  if (index === 0) return 'Main';
+  if (totalSidePots === 1) return 'Side';
+  return `Side ${index}`;
+};
+
+export const Table: React.FC<TableProps> = ({ communityCards, pot, pots, phase }) => {
   return (
     <div data-testid="poker-table" className="relative w-full max-w-4xl mx-auto h-[400px] sm:h-[500px] border-[12px] border-green-900/50 rounded-[100px] sm:rounded-[150px] shadow-2xl bg-gradient-to-br from-green-700 to-green-800 flex flex-col items-center justify-center backdrop-blur-sm -z-10 mt-12 sm:mt-16">
       <div className="absolute inset-0 border-[4px] border-green-600/30 rounded-[88px] sm:rounded-[138px] pointer-events-none" />
@@ -22,6 +29,15 @@ export const Table: React.FC<TableProps> = ({ communityCards, pot, phase }) => {
         <div className="text-3xl font-black text-yellow-400 text-center tracking-tight drop-shadow-md">
           ${pot.toLocaleString()}
         </div>
+        {pots.length >= 2 && (
+          <div className="mt-2 space-y-1">
+            {pots.map((p, i) => (
+              <div key={i} data-testid="pot-item" className="text-sm text-white/80 text-center">
+                {getPotLabel(i, pots.length - 1)}: ${p.amount.toLocaleString()}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div data-testid="community-cards" className="z-10 flex gap-2 sm:gap-4 h-24 sm:h-32 perspective-1000">

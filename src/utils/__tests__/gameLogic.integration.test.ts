@@ -4,7 +4,8 @@ import {
   isRoundOver,
   calculateBlinds,
   applyAction,
-  determineWinner,
+  calculateSidePots,
+  distributePots,
   INITIAL_CHIPS,
   SMALL_BLIND,
   BIG_BLIND,
@@ -15,6 +16,7 @@ const postBlind = (players: Player[], index: number, amount: number): number => 
   const actual = Math.min(players[index].chips, amount)
   players[index].chips -= actual
   players[index].currentBet += actual
+  players[index].totalContribution += actual
   return actual
 }
 
@@ -37,6 +39,20 @@ describe('ゲームフロー統合: calculateBlinds → ブラインド投入', 
     expect(players[blinds.bigBlindIndex].chips).toBe(INITIAL_CHIPS - BIG_BLIND)
     expect(players[blinds.bigBlindIndex].currentBet).toBe(BIG_BLIND)
     expect(players[blinds.dealerIndex].role).toBe('dealer')
+  })
+
+  test('postBlind が totalContribution を加算する', () => {
+    const players = createActivePlayers(3)
+    const blinds = calculateBlinds(players, -1)
+
+    expect(players[blinds.smallBlindIndex].totalContribution).toBe(0)
+    expect(players[blinds.bigBlindIndex].totalContribution).toBe(0)
+
+    postBlind(players, blinds.smallBlindIndex, SMALL_BLIND)
+    postBlind(players, blinds.bigBlindIndex, BIG_BLIND)
+
+    expect(players[blinds.smallBlindIndex].totalContribution).toBe(SMALL_BLIND)
+    expect(players[blinds.bigBlindIndex].totalContribution).toBe(BIG_BLIND)
   })
 
   test('UTGプレイヤーが最初のアクティブプレイヤーとして正しい', () => {
@@ -202,87 +218,8 @@ describe('ゲームフロー統合: ベッティングラウンド間のプレ�
   })
 })
 
-describe('ゲームフロー統合: ショーダウン → determineWinner', () => {
-  test('ショーダウンで勝者が正しく決定されチップが付与される', () => {
-    const players: Player[] = [
-      createPlayer({
-        id: 'p0',
-        name: 'Player 0',
-        cards: [card('hearts', 'A'), card('hearts', 'K')],
-        action: 'call',
-        chips: INITIAL_CHIPS - 40,
-        currentBet: 40,
-      }),
-      createPlayer({
-        id: 'p1',
-        name: 'Player 1',
-        cards: [card('diamonds', '2'), card('clubs', '7')],
-        action: 'call',
-        chips: INITIAL_CHIPS - 40,
-        currentBet: 40,
-      }),
-      createPlayer({
-        id: 'p2',
-        name: 'Player 2',
-        cards: [card('spades', '3'), card('clubs', '4')],
-        action: 'fold',
-      }),
-    ]
-    const communityCards: PlayingCard[] = [
-      card('hearts', 'Q'),
-      card('hearts', 'J'),
-      card('hearts', '10'),
-      card('clubs', '9'),
-      card('spades', '8'),
-    ]
-    const pot = 120
-
-    const result = determineWinner(players, communityCards)
-
-    const updatedPlayers = [...players]
-    const winnerIdx = updatedPlayers.findIndex(p => p.id === result.winnerId)
-    updatedPlayers[winnerIdx] = {
-      ...updatedPlayers[winnerIdx],
-      chips: updatedPlayers[winnerIdx].chips + pot,
-    }
-
-    expect(result.winnerId).toBe('p0')
-    expect(updatedPlayers[winnerIdx].chips).toBe(INITIAL_CHIPS - 40 + pot)
-    expect(result.handRankName).toBeTruthy()
-  })
-
-  test('フォールド済みプレイヤーはショーダウンの評価対象外', () => {
-    const players: Player[] = [
-      createPlayer({
-        id: 'p0',
-        name: 'Player 0',
-        cards: [card('hearts', 'A'), card('hearts', 'K')],
-        action: 'fold',
-      }),
-      createPlayer({
-        id: 'p1',
-        name: 'Player 1',
-        cards: [card('diamonds', '2'), card('clubs', '7')],
-        action: 'call',
-      }),
-    ]
-    const communityCards: PlayingCard[] = [
-      card('hearts', 'Q'),
-      card('hearts', 'J'),
-      card('hearts', '10'),
-      card('clubs', '9'),
-      card('spades', '8'),
-    ]
-
-    const result = determineWinner(players, communityCards)
-
-    // Player 0 はロイヤルフラッシュだが fold しているので評価外
-    expect(result.winnerId).toBe('p1')
-  })
-})
-
 describe('ゲームフロー統合: 一連のハンドフロー', () => {
-  test('calculateBlinds → applyAction連続 → isRoundOver → determineWinner の完全フロー', () => {
+  test('calculateBlinds → applyAction連続 → isRoundOver → distributePots の完全フロー', () => {
     // 1. ブラインド計算
     const players = createActivePlayers(5)
     const blinds = calculateBlinds(players, -1)
@@ -362,17 +299,16 @@ describe('ゲームフロー統合: 一連のハンドフロー', () => {
       card('spades', '2'),
     ]
 
-    const winnerResult = determineWinner(currentPlayers, communityCards)
-    expect(winnerResult.winnerId).toBe('p0')
-    expect(winnerResult.handRankName).toBe('Royal Flush')
+    const sidePots = calculateSidePots(currentPlayers)
+    const { updatedPlayers: finalPlayers, awards } = distributePots(sidePots, currentPlayers, communityCards)
 
-    // 5. 勝者にポットを付与
-    const winnerIdx = currentPlayers.findIndex(p => p.id === winnerResult.winnerId)
-    currentPlayers[winnerIdx] = {
-      ...currentPlayers[winnerIdx],
-      chips: currentPlayers[winnerIdx].chips + pot,
-    }
-    expect(currentPlayers[winnerIdx].chips).toBe(INITIAL_CHIPS - BIG_BLIND + pot)
+    // p0 がロイヤルフラッシュで全ポットを獲得
+    expect(awards).toHaveLength(1)
+    expect(awards[0].playerId).toBe('p0')
+    expect(awards[0].handRankName).toBe('Royal Flush')
+
+    // 5. 勝者のチップを検証
+    expect(finalPlayers[0].chips).toBe(INITIAL_CHIPS - BIG_BLIND + pot)
   })
 
   test('途中で全員フォールドした場合のフロー', () => {
@@ -496,5 +432,151 @@ describe('ゲームフロー統合: advancePhase での firstToAct 計算', () =
     const firstToAct = getNextActivePlayer(dealerIndex, resetPlayers)
     // Player 1 は all-in (chips=0) → Player 2
     expect(firstToAct).toBe(2)
+  })
+})
+
+describe('ゲームフロー統合: postBlind + applyAction + calculateSidePots 累積計算フロー', () => {
+  test('ブラインド投入 → applyAction の totalContribution 累積 → calculateSidePots の一貫性', () => {
+    // Given: ブラインド投入（totalContribution 付き）
+    const players = createActivePlayers(3)
+    const blinds = calculateBlinds(players, -1)
+
+    let pot = 0
+    pot += postBlind(players, blinds.smallBlindIndex, SMALL_BLIND)
+    pot += postBlind(players, blinds.bigBlindIndex, BIG_BLIND)
+
+    const currentBet = BIG_BLIND
+
+    // When: UTG がコール → SB がコール → BB がチェック
+    let result = applyAction(players, blinds.utgIndex, 'call', 0, pot, currentBet)
+    let currentPlayers = result.updatedPlayers
+    pot = result.newPot
+
+    result = applyAction(currentPlayers, blinds.smallBlindIndex, 'call', 0, pot, result.newCurrentBet)
+    currentPlayers = result.updatedPlayers
+    pot = result.newPot
+
+    result = applyAction(currentPlayers, blinds.bigBlindIndex, 'call', 0, pot, result.newCurrentBet)
+    currentPlayers = result.updatedPlayers
+    pot = result.newPot
+
+    // Then: 全員 BIG_BLIND ずつの totalContribution
+    for (const p of currentPlayers) {
+      expect(p.totalContribution).toBe(BIG_BLIND)
+    }
+
+    // calculateSidePots が正しくポットを計算する
+    const pots = calculateSidePots(currentPlayers)
+    expect(pots).toHaveLength(1)
+    expect(pots[0].amount).toBe(BIG_BLIND * 3)
+    expect(pots[0].eligiblePlayerIds).toHaveLength(3)
+
+    // チップ保存則: pot === sum(totalContribution)
+    const totalContribution = currentPlayers.reduce((sum, p) => sum + p.totalContribution, 0)
+    expect(pot).toBe(totalContribution)
+  })
+
+  test('オールインを含むブラインド投入 → applyAction → calculateSidePots', () => {
+    // Given: SB が少額チップでオールインブラインド
+    const players = createActivePlayers(3)
+    const blinds = calculateBlinds(players, -1)
+    players[blinds.smallBlindIndex].chips = 5
+
+    let pot = 0
+    pot += postBlind(players, blinds.smallBlindIndex, SMALL_BLIND)
+    pot += postBlind(players, blinds.bigBlindIndex, BIG_BLIND)
+
+    const currentBet = BIG_BLIND
+
+    // When: UTG コール → BB チェック（SB はオールイン済み）
+    let result = applyAction(players, blinds.utgIndex, 'call', 0, pot, currentBet)
+    let currentPlayers = result.updatedPlayers
+    pot = result.newPot
+
+    result = applyAction(currentPlayers, blinds.bigBlindIndex, 'call', 0, pot, result.newCurrentBet)
+    currentPlayers = result.updatedPlayers
+    pot = result.newPot
+
+    // Then: SB の totalContribution は 5、他は BIG_BLIND
+    expect(currentPlayers[blinds.smallBlindIndex].totalContribution).toBe(5)
+    expect(currentPlayers[blinds.utgIndex].totalContribution).toBe(BIG_BLIND)
+    expect(currentPlayers[blinds.bigBlindIndex].totalContribution).toBe(BIG_BLIND)
+
+    // calculateSidePots でサイドポットが生成される
+    const pots = calculateSidePots(currentPlayers)
+    expect(pots.length).toBeGreaterThanOrEqual(2)
+
+    // チップ保存則
+    const totalPotAmount = pots.reduce((sum, p) => sum + p.amount, 0)
+    const totalContribution = currentPlayers.reduce((sum, p) => sum + p.totalContribution, 0)
+    expect(totalPotAmount).toBe(totalContribution)
+  })
+})
+
+describe('ゲームフロー統合: calculateSidePots → distributePots → チップ保存則', () => {
+  const communityCards: PlayingCard[] = [
+    card('clubs', '2'), card('diamonds', '3'), card('spades', '8'),
+    card('clubs', 'J'), card('diamonds', '9'),
+  ]
+
+  test('オールインプレイヤーの showdown 分配でチップ総額が保存される', () => {
+    // Given: 3人で p0 が少額オールイン
+    const players: Player[] = [
+      createPlayer({
+        id: 'p0', name: 'Player 0', chips: 0, totalContribution: 50, action: 'all-in',
+        cards: [card('spades', 'A'), card('hearts', 'A')],
+      }),
+      createPlayer({
+        id: 'p1', name: 'Player 1', chips: INITIAL_CHIPS - 100, totalContribution: 100,
+        cards: [card('spades', 'K'), card('hearts', 'K')],
+      }),
+      createPlayer({
+        id: 'p2', name: 'Player 2', chips: INITIAL_CHIPS - 100, totalContribution: 100,
+        cards: [card('spades', '4'), card('hearts', '6')],
+      }),
+    ]
+
+    const totalChipsBefore = players.reduce((s, p) => s + p.chips + p.totalContribution, 0)
+
+    // When
+    const pots = calculateSidePots(players)
+    const { updatedPlayers } = distributePots(pots, players, communityCards)
+
+    // Then: チップ保存則
+    const totalChipsAfter = updatedPlayers.reduce((s, p) => s + p.chips, 0)
+    // 分配後の chips 合計 = 分配前の (chips + totalContribution) 合計
+    expect(totalChipsAfter).toBe(totalChipsBefore)
+  })
+
+  test('フォールドプレイヤーを含むサイドポット分配でチップ総額が保存される', () => {
+    // Given
+    const players: Player[] = [
+      createPlayer({
+        id: 'p0', name: 'Player 0', chips: 0, totalContribution: 30, action: 'all-in',
+        cards: [card('spades', 'A'), card('hearts', 'A')],
+      }),
+      createPlayer({
+        id: 'p1', name: 'Player 1', chips: INITIAL_CHIPS - 70, totalContribution: 70, action: 'fold',
+        cards: [card('spades', '4'), card('hearts', '6')],
+      }),
+      createPlayer({
+        id: 'p2', name: 'Player 2', chips: INITIAL_CHIPS - 100, totalContribution: 100,
+        cards: [card('spades', 'K'), card('hearts', 'K')],
+      }),
+      createPlayer({
+        id: 'p3', name: 'Player 3', chips: INITIAL_CHIPS - 100, totalContribution: 100,
+        cards: [card('hearts', '4'), card('hearts', '6')],
+      }),
+    ]
+
+    const totalChipsBefore = players.reduce((s, p) => s + p.chips + p.totalContribution, 0)
+
+    // When
+    const pots = calculateSidePots(players)
+    const { updatedPlayers } = distributePots(pots, players, communityCards)
+
+    // Then
+    const totalChipsAfter = updatedPlayers.reduce((s, p) => s + p.chips, 0)
+    expect(totalChipsAfter).toBe(totalChipsBefore)
   })
 })

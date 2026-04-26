@@ -6,6 +6,7 @@ export const card = (suit: Suit, rank: Rank): PlayingCard => ({ suit, rank })
 export const createPlayer = (overrides: Partial<Player> & { id: string; name: string }): Player => ({
   chips: INITIAL_CHIPS,
   currentBet: 0,
+  totalContribution: 0,
   isActive: true,
   isHuman: false,
   cards: [],

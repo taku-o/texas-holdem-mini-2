@@ -4,7 +4,6 @@ import {
   isRoundOver,
   calculateBlinds,
   applyAction,
-  determineWinner,
   dealCommunityCards,
   INITIAL_CHIPS,
   BIG_BLIND,
@@ -520,6 +519,75 @@ describe('applyAction', () => {
     })
   })
 
+  describe('totalContribution', () => {
+    test('callでtotalContributionにactualCallが加算される', () => {
+      const players = createActivePlayers(3)
+
+      const result = applyAction(players, 0, 'call', 0, 100, 20)
+
+      expect(result.updatedPlayers[0].totalContribution).toBe(20)
+    })
+
+    test('raiseでtotalContributionにraiseAmountが加算される', () => {
+      const players = createActivePlayers(3)
+
+      const result = applyAction(players, 0, 'raise', 40, 100, 20)
+
+      expect(result.updatedPlayers[0].totalContribution).toBe(40)
+    })
+
+    test('foldでtotalContributionは変化しない', () => {
+      const players = createActivePlayers(3)
+
+      const result = applyAction(players, 0, 'fold', 0, 100, 20)
+
+      expect(result.updatedPlayers[0].totalContribution).toBe(0)
+    })
+
+    test('既ベット額がある状態でcallすると差分のみ加算される', () => {
+      const players = createActivePlayers(3)
+      players[0].currentBet = 10
+      players[0].chips = INITIAL_CHIPS - 10
+      players[0].totalContribution = 10
+
+      const result = applyAction(players, 0, 'call', 0, 100, 20)
+
+      expect(result.updatedPlayers[0].totalContribution).toBe(20)
+      expect(result.updatedPlayers[0].currentBet).toBe(20)
+    })
+
+    test('既ベット額がある状態でraiseすると差分のみ加算される', () => {
+      const players = createActivePlayers(3)
+      players[0].currentBet = 20
+      players[0].chips = INITIAL_CHIPS - 20
+      players[0].totalContribution = 20
+
+      const result = applyAction(players, 0, 'raise', 60, 100, 20)
+
+      expect(result.updatedPlayers[0].totalContribution).toBe(60)
+    })
+
+    test('callでオールインになった場合もtotalContributionに加算される', () => {
+      const players = createActivePlayers(3)
+      players[0].chips = 10
+
+      const result = applyAction(players, 0, 'call', 0, 100, 20)
+
+      expect(result.updatedPlayers[0].totalContribution).toBe(10)
+      expect(result.updatedPlayers[0].action).toBe('all-in')
+    })
+
+    test('raiseでオールインになった場合もtotalContributionに加算される', () => {
+      const players = createActivePlayers(3)
+      players[0].chips = 30
+
+      const result = applyAction(players, 0, 'raise', 100, 100, 20)
+
+      expect(result.updatedPlayers[0].totalContribution).toBe(30)
+      expect(result.updatedPlayers[0].action).toBe('all-in')
+    })
+  })
+
   describe('不変性', () => {
     test('他のプレイヤーの状態を変更しない', () => {
       const players = createActivePlayers(3)
@@ -531,108 +599,6 @@ describe('applyAction', () => {
       expect(result.updatedPlayers[1].chips).toBe(500)
       expect(result.updatedPlayers[2].chips).toBe(700)
     })
-  })
-})
-
-describe('determineWinner', () => {
-  test('最も高いハンドランクのプレイヤーが勝者になる', () => {
-    const players: Player[] = [
-      createPlayer({
-        id: 'p0',
-        name: 'Player 0',
-        cards: [card('hearts', 'A'), card('hearts', 'K')],
-      }),
-      createPlayer({
-        id: 'p1',
-        name: 'Player 1',
-        cards: [card('diamonds', '2'), card('clubs', '7')],
-      }),
-    ]
-    const communityCards: PlayingCard[] = [
-      card('hearts', 'Q'),
-      card('hearts', 'J'),
-      card('hearts', '10'),
-    ]
-
-    const result = determineWinner(players, communityCards)
-
-    expect(result.winnerId).toBe('p0')
-    expect(result.winnerName).toBe('Player 0')
-    expect(result.handRankName).toBe('Royal Flush')
-  })
-
-  test('同じランクの場合スコアが高い方が勝者になる', () => {
-    const players: Player[] = [
-      createPlayer({
-        id: 'p0',
-        name: 'Player 0',
-        cards: [card('hearts', 'A'), card('diamonds', 'K')],
-      }),
-      createPlayer({
-        id: 'p1',
-        name: 'Player 1',
-        cards: [card('spades', 'A'), card('clubs', 'Q')],
-      }),
-    ]
-    const communityCards: PlayingCard[] = [
-      card('clubs', 'A'),
-      card('spades', '7'),
-      card('hearts', '3'),
-    ]
-
-    const result = determineWinner(players, communityCards)
-
-    expect(result.winnerId).toBe('p0')
-  })
-
-  test('フォールドしていないアクティブプレイヤーのみを評価対象とする', () => {
-    const players: Player[] = [
-      createPlayer({
-        id: 'p0',
-        name: 'Player 0',
-        cards: [card('hearts', 'A'), card('hearts', 'K')],
-        action: 'fold',
-      }),
-      createPlayer({
-        id: 'p1',
-        name: 'Player 1',
-        cards: [card('diamonds', '2'), card('clubs', '7')],
-      }),
-    ]
-    const communityCards: PlayingCard[] = [
-      card('hearts', 'Q'),
-      card('hearts', 'J'),
-      card('hearts', '10'),
-    ]
-
-    const result = determineWinner(players, communityCards)
-
-    expect(result.winnerId).toBe('p1')
-  })
-
-  test('handRankNameが勝者のハンドランク名を返す', () => {
-    const players: Player[] = [
-      createPlayer({
-        id: 'p0',
-        name: 'Player 0',
-        cards: [card('hearts', 'J'), card('diamonds', 'J')],
-      }),
-      createPlayer({
-        id: 'p1',
-        name: 'Player 1',
-        cards: [card('clubs', '2'), card('spades', '3')],
-      }),
-    ]
-    const communityCards: PlayingCard[] = [
-      card('clubs', '8'),
-      card('spades', '5'),
-      card('hearts', '9'),
-    ]
-
-    const result = determineWinner(players, communityCards)
-
-    expect(result.winnerId).toBe('p0')
-    expect(result.handRankName).toBe('One Pair')
   })
 })
 
@@ -779,5 +745,14 @@ describe('dealCommunityCards', () => {
 
       expect(communityCards).toHaveLength(originalLength)
     })
+  })
+})
+
+describe('デッドコード回帰防止', () => {
+  test('determineWinner と WinnerResult がエクスポートされていない', async () => {
+    const mod = await import('../gameLogic') as Record<string, unknown>
+
+    expect(mod).not.toHaveProperty('determineWinner')
+    expect(mod).not.toHaveProperty('WinnerResult')
   })
 })

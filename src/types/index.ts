@@ -13,9 +13,15 @@ export interface Player {
   name: string;
   chips: number;
   currentBet: number;
+  totalContribution: number;
   isActive: boolean;
   isHuman: boolean;
   cards: PlayingCard[];
   action: PlayerAction;
   role: 'dealer' | 'sb' | 'bb' | null;
+}
+
+export interface Pot {
+  amount: number;
+  eligiblePlayerIds: string[];
 }

@@ -1,4 +1,4 @@
-import type { Player, PlayingCard } from '../types';
+import type { Player, PlayingCard, Pot } from '../types';
 import { evaluateHand } from './evaluator';
 
 export type GamePhase = 'idle' | 'pre-flop' | 'flop' | 'turn' | 'river' | 'showdown' | 'game-over';
@@ -31,12 +31,6 @@ export interface ApplyActionResult {
   newPot: number;
   newCurrentBet: number;
   logMessage: string;
-}
-
-export interface WinnerResult {
-  winnerId: string;
-  winnerName: string;
-  handRankName: string;
 }
 
 export const getNextActivePlayer = (currentIndex: number, players: Player[]): number => {
@@ -105,6 +99,7 @@ export const applyAction = (
     const actualCall = Math.min(p.chips, toCall);
     p.chips -= actualCall;
     p.currentBet += actualCall;
+    p.totalContribution += actualCall;
     newPot += actualCall;
     p.action = p.chips === 0 ? 'all-in' : 'call';
     logMessage = actualCall > 0 ? `${p.name} calls $${actualCall}.` : `${p.name} calls.`;
@@ -116,6 +111,7 @@ export const applyAction = (
     );
     p.chips -= raiseAmount;
     p.currentBet += raiseAmount;
+    p.totalContribution += raiseAmount;
     newPot += raiseAmount;
     newCurrentBet = Math.max(newCurrentBet, p.currentBet);
     p.action = p.chips === 0 ? 'all-in' : 'raise';
@@ -157,24 +153,94 @@ export const dealCommunityCards = (
   return { newCommunityCards, newDeck };
 };
 
-export const determineWinner = (players: Player[], communityCards: PlayingCard[]): WinnerResult => {
-  const activePlayers = players.filter(p => p.isActive && p.action !== 'fold');
 
-  if (activePlayers.length === 0) {
-    return { winnerId: '', winnerName: '', handRankName: '' };
+export interface PotAward {
+  playerId: string;
+  playerName: string;
+  amount: number;
+  handRankName: string;
+}
+
+export interface DistributePotsResult {
+  updatedPlayers: Player[];
+  awards: PotAward[];
+}
+
+export const distributePots = (
+  pots: Pot[],
+  players: Player[],
+  communityCards: PlayingCard[],
+): DistributePotsResult => {
+  const currentPlayers = players.map(p => ({ ...p, cards: [...p.cards] }));
+  const awards: PotAward[] = [];
+
+  for (const pot of pots) {
+    const evaluated = players
+      .map((player, originalIndex) => ({ player, originalIndex }))
+      .filter(({ player }) => pot.eligiblePlayerIds.includes(player.id))
+      .map(({ player, originalIndex }) => ({
+        player,
+        originalIndex,
+        eval: evaluateHand(player.cards, communityCards),
+      }));
+
+    if (evaluated.length === 0) continue;
+
+    const maxScore = Math.max(...evaluated.map(e => e.eval.score));
+    const tiedWinners = evaluated
+      .filter(e => e.eval.score === maxScore)
+      .sort((a, b) => a.originalIndex - b.originalIndex);
+
+    const baseAmount = Math.floor(pot.amount / tiedWinners.length);
+    const remainder = pot.amount % tiedWinners.length;
+
+    for (let i = 0; i < tiedWinners.length; i++) {
+      const winner = tiedWinners[i];
+      const awardAmount = baseAmount + (i === 0 ? remainder : 0);
+
+      awards.push({
+        playerId: winner.player.id,
+        playerName: winner.player.name,
+        amount: awardAmount,
+        handRankName: winner.eval.rankName,
+      });
+
+      const playerIdx = currentPlayers.findIndex(p => p.id === winner.player.id);
+      currentPlayers[playerIdx] = {
+        ...currentPlayers[playerIdx],
+        chips: currentPlayers[playerIdx].chips + awardAmount,
+      };
+    }
   }
 
-  const results = activePlayers.map(p => ({
-    player: p,
-    eval: evaluateHand(p.cards, communityCards),
-  }));
+  return { updatedPlayers: currentPlayers, awards };
+};
 
-  results.sort((a, b) => b.eval.score - a.eval.score);
+export const calculateSidePots = (players: Player[]): Pot[] => {
+  const contributors = players.filter(p => p.totalContribution > 0);
 
-  const winner = results[0];
-  return {
-    winnerId: winner.player.id,
-    winnerName: winner.player.name,
-    handRankName: winner.eval.rankName,
-  };
+  if (contributors.length === 0) return [];
+
+  const uniqueLevels = [...new Set(contributors.map(p => p.totalContribution))].sort((a, b) => a - b);
+
+  const pots: Pot[] = [];
+  let prevLevel = 0;
+  let remaining = contributors;
+
+  for (const level of uniqueLevels) {
+    const diff = level - prevLevel;
+    const amount = diff * remaining.length;
+    const eligiblePlayerIds = remaining
+      .filter(p => p.action !== 'fold')
+      .map(p => p.id);
+
+    if (amount > 0) {
+      pots.push({ amount, eligiblePlayerIds });
+    }
+
+    remaining = remaining.filter(p => p.totalContribution > level);
+    prevLevel = level;
+  }
+
+  return pots;
 };
