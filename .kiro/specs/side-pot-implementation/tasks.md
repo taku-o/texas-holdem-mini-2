@@ -167,13 +167,13 @@
 
 ## 7. Validation: E2E とスクリーンショットベースライン
 
-- [ ] 7.1 E2E テスト用 testid 定数を追加する
+- [x] 7.1 E2E テスト用 testid 定数を追加する
   - `e2e/constants.ts` に `TESTID_POT_ITEM = 'pot-item'` を追加
   - 観測可能な完了: 定数が `e2e/constants.ts` からエクスポートされ、後続の spec から import 可能
   - _Requirements: 3.1, 3.3_
   - _Boundary: e2e/constants.ts_
 
-- [ ] 7.2 サイドポット表示の E2E spec を追加する
+- [x] 7.2 サイドポット表示の E2E spec を追加する
   - `pot-display` 要素数 = 1 の既存契約維持検証
   - 通常進行時に pot-item 要素数が 1 以下（要件 3.4）
   - 各ポット要素のテキストが `/\$\d/` にマッチ（要件 3.2, 4.4）
@@ -183,21 +183,21 @@
   - _Boundary: e2e/side-pot.spec.ts_
   - _Depends: 6.1, 6.2, 7.1_
 
-- [ ] 7.3 スクリーンショットベースライン `game-screen.png` を更新する
+- [x] 7.3 スクリーンショットベースライン `game-screen.png` を更新する
   - `npm run test:e2e:update` で `e2e/__screenshots__/game-layout.spec.ts/game-screen.png` を再生成する
   - 観測可能な完了: `npm run test:e2e` が更新後のベースラインとの差分 0 で pass する
   - _Requirements: 3.6_
   - _Boundary: e2e/__screenshots__/_
   - _Depends: 6.1, 6.2_
 
-- [ ] 7.4 全テストスイート実行で回帰なしを確認する
+- [x] 7.4 全テストスイート実行で回帰なしを確認する
   - `npm run test`（単体・統合）の全件 pass
   - `npm run test:e2e`（E2E + スクリーンショット）の全件 pass
   - 観測可能な完了: 両コマンドの終了コード 0 かつ失敗件数 0
   - _Requirements: 4.5, 4.6, 4.7_
   - _Depends: 5.5, 7.2, 7.3_
 
-- [ ] 7.5 README.md の役判定セクションにサイドポット挙動を追記する
+- [x] 7.5 README.md の役判定セクションにサイドポット挙動を追記する
   - 現状の「役判定」説明は単一ポット前提の勝敗決定として書かれているため、オールイン発生時に複数ポット（メインポット・サイドポット）が生成され、各ポットで独立に勝者判定と分配が行われる旨を追記する
   - 追記内容はユーザー向けの簡潔な説明とし、実装詳細（関数名・型名・アルゴリズム）は含めない
   - 観測可能な完了: README.md の該当セクションにサイドポット挙動の説明が追加され、Markdown として正しくレンダリングされる

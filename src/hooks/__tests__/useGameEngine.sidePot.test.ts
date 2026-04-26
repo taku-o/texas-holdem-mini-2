@@ -721,7 +721,7 @@ describe('統合: useGameEngine サイドポットフロー', () => {
 
     // 不変条件: pot === sum(totalContribution)
     const totalContribution = flopState.players.reduce((sum, p) => sum + p.totalContribution, 0)
-    expect(flopState.pot ?? pot).toBe(totalContribution)
+    expect(flopState.pot).toBe(totalContribution)
   })
 
   test('オールインケースの showdown 分配フロー: 勝者 chips 増加 = 各ポット合算', () => {

@@ -1,5 +1,3 @@
-import type { Player, PlayingCard } from '../../types'
-
 import type {
   GamePhase as GamePhaseFromLogic,
   GameState as GameStateFromLogic,
@@ -19,7 +17,7 @@ import {
   calculateBlinds,
   applyAction,
 } from '../../utils/gameLogic'
-import { card, createActivePlayers, createPlayer, resetPlayersForNewRound } from '../../__tests__/helpers'
+import { createActivePlayers, resetPlayersForNewRound } from '../../__tests__/helpers'
 
 describe('タスク2.1: 型定義と定数の移動', () => {
   describe('gameLogic.ts からの GamePhase 型エクスポート', () => {

@@ -4,6 +4,7 @@ export const HUMAN_PLAYER_LABEL = 'You (Player)';
 
 export const TESTID_POKER_TABLE = 'poker-table';
 export const TESTID_POT_DISPLAY = 'pot-display';
+export const TESTID_POT_ITEM = 'pot-item';
 export const TESTID_COMMUNITY_CARDS = 'community-cards';
 export const TESTID_ACTION_LOGS = 'action-logs';
 export const TESTID_CONTROLS = 'controls';
