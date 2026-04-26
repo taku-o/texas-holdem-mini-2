@@ -33,12 +33,6 @@ export interface ApplyActionResult {
   logMessage: string;
 }
 
-export interface WinnerResult {
-  winnerId: string;
-  winnerName: string;
-  handRankName: string;
-}
-
 export const getNextActivePlayer = (currentIndex: number, players: Player[]): number => {
   let next = (currentIndex + 1) % players.length;
   let count = 0;
@@ -159,27 +153,6 @@ export const dealCommunityCards = (
   return { newCommunityCards, newDeck };
 };
 
-export const determineWinner = (players: Player[], communityCards: PlayingCard[]): WinnerResult => {
-  const activePlayers = players.filter(p => p.isActive && p.action !== 'fold');
-
-  if (activePlayers.length === 0) {
-    return { winnerId: '', winnerName: '', handRankName: '' };
-  }
-
-  const results = activePlayers.map(p => ({
-    player: p,
-    eval: evaluateHand(p.cards, communityCards),
-  }));
-
-  results.sort((a, b) => b.eval.score - a.eval.score);
-
-  const winner = results[0];
-  return {
-    winnerId: winner.player.id,
-    winnerName: winner.player.name,
-    handRankName: winner.eval.rankName,
-  };
-};
 
 export interface PotAward {
   playerId: string;

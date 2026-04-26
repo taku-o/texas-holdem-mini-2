@@ -2,6 +2,7 @@ import { Player } from './components/Player';
 import { Table } from './components/Table';
 import { Controls } from './components/Controls';
 import { useGameEngine } from './hooks/useGameEngine';
+import { calculateSidePots } from './utils/gameLogic';
 
 const positions = [
   'bottom-[-40px] sm:bottom-[-60px] left-1/2 -translate-x-1/2 z-20',   
@@ -50,6 +51,7 @@ function App() {
     return mapped;
   };
   const mappedPlayers = getMappedPlayers();
+  const pots = calculateSidePots(state.players);
 
   return (
     <div className="min-h-[100dvh] w-full p-4 sm:p-8 flex flex-col items-center justify-between overflow-x-hidden relative">
@@ -62,7 +64,7 @@ function App() {
 
       <div className="w-full flex-grow flex flex-col items-center justify-center">
         <div className="w-full max-w-[800px] relative mt-0 sm:mt-6 mb-20 sm:mb-24 flex-shrink-0">
-          <Table communityCards={state.communityCards} pot={state.pot} phase={state.phase} />
+          <Table communityCards={state.communityCards} pot={state.pot} pots={pots} phase={state.phase} />
           
           {mappedPlayers.map((p, i) => {
             if (!p) return null;

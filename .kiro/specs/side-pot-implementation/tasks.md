@@ -147,7 +147,7 @@
 
 ## 6. UI: Table と App の統合
 
-- [ ] 6.1 Table コンポーネントに複数ポット描画を追加する
+- [x] 6.1 Table コンポーネントに複数ポット描画を追加する
   - `pots: Pot[]` prop を追加する
   - 既存の `pot-display` testid コンテナを維持する
   - `pots.length >= 2` の場合、コンテナ内に各ポット要素（`data-testid="pot-item"`）を描画し、各要素のテキストに `$<数値>` を含める
@@ -157,7 +157,7 @@
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
   - _Boundary: components/Table.tsx_
 
-- [ ] 6.2 App コンポーネントから `calculateSidePots` を Table に接続する
+- [x] 6.2 App コンポーネントから `calculateSidePots` を Table に接続する
   - `calculateSidePots(state.players)` を呼び、Table の `pots` prop に渡す
   - 既存の `pot={state.pot}` prop はそのまま維持する
   - 観測可能な完了: 実行時にオールインケースで Table に複数の pot-item が描画され、通常ケースでは単一表示を維持する

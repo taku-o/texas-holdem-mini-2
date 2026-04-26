@@ -89,6 +89,19 @@ takt --task "/kiro-impl side-pot-implementation 4"
 /commit-push
 
 
+takt --task "/kiro-impl side-pot-implementation 5"
+/kiro-validate-impl side-pot-implementation 5
+/simplify-loop
+/kiro-complete-tasks side-pot-implementation 5
+/commit-push
+
+takt --task "/kiro-impl side-pot-implementation 6"
+/kiro-validate-impl side-pot-implementation 6
+/simplify-loop
+/kiro-complete-tasks side-pot-implementation 6
+/commit-push
+
+
 
 
 

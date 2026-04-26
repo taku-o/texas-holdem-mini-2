@@ -4,7 +4,6 @@ import {
   isRoundOver,
   calculateBlinds,
   applyAction,
-  determineWinner,
   dealCommunityCards,
   INITIAL_CHIPS,
   BIG_BLIND,
@@ -603,108 +602,6 @@ describe('applyAction', () => {
   })
 })
 
-describe('determineWinner', () => {
-  test('最も高いハンドランクのプレイヤーが勝者になる', () => {
-    const players: Player[] = [
-      createPlayer({
-        id: 'p0',
-        name: 'Player 0',
-        cards: [card('hearts', 'A'), card('hearts', 'K')],
-      }),
-      createPlayer({
-        id: 'p1',
-        name: 'Player 1',
-        cards: [card('diamonds', '2'), card('clubs', '7')],
-      }),
-    ]
-    const communityCards: PlayingCard[] = [
-      card('hearts', 'Q'),
-      card('hearts', 'J'),
-      card('hearts', '10'),
-    ]
-
-    const result = determineWinner(players, communityCards)
-
-    expect(result.winnerId).toBe('p0')
-    expect(result.winnerName).toBe('Player 0')
-    expect(result.handRankName).toBe('Royal Flush')
-  })
-
-  test('同じランクの場合スコアが高い方が勝者になる', () => {
-    const players: Player[] = [
-      createPlayer({
-        id: 'p0',
-        name: 'Player 0',
-        cards: [card('hearts', 'A'), card('diamonds', 'K')],
-      }),
-      createPlayer({
-        id: 'p1',
-        name: 'Player 1',
-        cards: [card('spades', 'A'), card('clubs', 'Q')],
-      }),
-    ]
-    const communityCards: PlayingCard[] = [
-      card('clubs', 'A'),
-      card('spades', '7'),
-      card('hearts', '3'),
-    ]
-
-    const result = determineWinner(players, communityCards)
-
-    expect(result.winnerId).toBe('p0')
-  })
-
-  test('フォールドしていないアクティブプレイヤーのみを評価対象とする', () => {
-    const players: Player[] = [
-      createPlayer({
-        id: 'p0',
-        name: 'Player 0',
-        cards: [card('hearts', 'A'), card('hearts', 'K')],
-        action: 'fold',
-      }),
-      createPlayer({
-        id: 'p1',
-        name: 'Player 1',
-        cards: [card('diamonds', '2'), card('clubs', '7')],
-      }),
-    ]
-    const communityCards: PlayingCard[] = [
-      card('hearts', 'Q'),
-      card('hearts', 'J'),
-      card('hearts', '10'),
-    ]
-
-    const result = determineWinner(players, communityCards)
-
-    expect(result.winnerId).toBe('p1')
-  })
-
-  test('handRankNameが勝者のハンドランク名を返す', () => {
-    const players: Player[] = [
-      createPlayer({
-        id: 'p0',
-        name: 'Player 0',
-        cards: [card('hearts', 'J'), card('diamonds', 'J')],
-      }),
-      createPlayer({
-        id: 'p1',
-        name: 'Player 1',
-        cards: [card('clubs', '2'), card('spades', '3')],
-      }),
-    ]
-    const communityCards: PlayingCard[] = [
-      card('clubs', '8'),
-      card('spades', '5'),
-      card('hearts', '9'),
-    ]
-
-    const result = determineWinner(players, communityCards)
-
-    expect(result.winnerId).toBe('p0')
-    expect(result.handRankName).toBe('One Pair')
-  })
-})
-
 describe('dealCommunityCards', () => {
   const createDeck = (count: number): PlayingCard[] =>
     Array.from({ length: count }, (_, i) =>
@@ -848,5 +745,14 @@ describe('dealCommunityCards', () => {
 
       expect(communityCards).toHaveLength(originalLength)
     })
+  })
+})
+
+describe('デッドコード回帰防止', () => {
+  test('determineWinner と WinnerResult がエクスポートされていない', async () => {
+    const mod = await import('../gameLogic') as Record<string, unknown>
+
+    expect(mod).not.toHaveProperty('determineWinner')
+    expect(mod).not.toHaveProperty('WinnerResult')
   })
 })
