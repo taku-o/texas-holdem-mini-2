@@ -78,7 +78,7 @@
 
 ## 4. `applyAction` の `totalContribution` 追跡拡張
 
-- [ ] 4.1 `applyAction` の `totalContribution` 追跡テストを先行作成する
+- [x] 4.1 `applyAction` の `totalContribution` 追跡テストを先行作成する
   - call で `totalContribution += actualCall` が反映される検証
   - raise で `totalContribution += raiseAmount` が反映される検証
   - fold で `totalContribution` が変更されない検証
@@ -87,7 +87,7 @@
   - _Requirements: 1.1_
   - _Boundary: utils/__tests__/gameLogic.test.ts_
 
-- [ ] 4.2 `applyAction` に `totalContribution` 加算処理を追加する
+- [x] 4.2 `applyAction` に `totalContribution` 加算処理を追加する
   - call 分岐で `p.totalContribution += actualCall` を追加
   - raise 分岐で `p.totalContribution += raiseAmount` を追加
   - fold 分岐は変更なし（totalContribution は不変）

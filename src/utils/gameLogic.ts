@@ -105,6 +105,7 @@ export const applyAction = (
     const actualCall = Math.min(p.chips, toCall);
     p.chips -= actualCall;
     p.currentBet += actualCall;
+    p.totalContribution += actualCall;
     newPot += actualCall;
     p.action = p.chips === 0 ? 'all-in' : 'call';
     logMessage = actualCall > 0 ? `${p.name} calls $${actualCall}.` : `${p.name} calls.`;
@@ -116,6 +117,7 @@ export const applyAction = (
     );
     p.chips -= raiseAmount;
     p.currentBet += raiseAmount;
+    p.totalContribution += raiseAmount;
     newPot += raiseAmount;
     newCurrentBet = Math.max(newCurrentBet, p.currentBet);
     p.action = p.chips === 0 ? 'all-in' : 'raise';

@@ -520,6 +520,75 @@ describe('applyAction', () => {
     })
   })
 
+  describe('totalContribution', () => {
+    test('callでtotalContributionにactualCallが加算される', () => {
+      const players = createActivePlayers(3)
+
+      const result = applyAction(players, 0, 'call', 0, 100, 20)
+
+      expect(result.updatedPlayers[0].totalContribution).toBe(20)
+    })
+
+    test('raiseでtotalContributionにraiseAmountが加算される', () => {
+      const players = createActivePlayers(3)
+
+      const result = applyAction(players, 0, 'raise', 40, 100, 20)
+
+      expect(result.updatedPlayers[0].totalContribution).toBe(40)
+    })
+
+    test('foldでtotalContributionは変化しない', () => {
+      const players = createActivePlayers(3)
+
+      const result = applyAction(players, 0, 'fold', 0, 100, 20)
+
+      expect(result.updatedPlayers[0].totalContribution).toBe(0)
+    })
+
+    test('既ベット額がある状態でcallすると差分のみ加算される', () => {
+      const players = createActivePlayers(3)
+      players[0].currentBet = 10
+      players[0].chips = INITIAL_CHIPS - 10
+      players[0].totalContribution = 10
+
+      const result = applyAction(players, 0, 'call', 0, 100, 20)
+
+      expect(result.updatedPlayers[0].totalContribution).toBe(20)
+      expect(result.updatedPlayers[0].currentBet).toBe(20)
+    })
+
+    test('既ベット額がある状態でraiseすると差分のみ加算される', () => {
+      const players = createActivePlayers(3)
+      players[0].currentBet = 20
+      players[0].chips = INITIAL_CHIPS - 20
+      players[0].totalContribution = 20
+
+      const result = applyAction(players, 0, 'raise', 60, 100, 20)
+
+      expect(result.updatedPlayers[0].totalContribution).toBe(60)
+    })
+
+    test('callでオールインになった場合もtotalContributionに加算される', () => {
+      const players = createActivePlayers(3)
+      players[0].chips = 10
+
+      const result = applyAction(players, 0, 'call', 0, 100, 20)
+
+      expect(result.updatedPlayers[0].totalContribution).toBe(10)
+      expect(result.updatedPlayers[0].action).toBe('all-in')
+    })
+
+    test('raiseでオールインになった場合もtotalContributionに加算される', () => {
+      const players = createActivePlayers(3)
+      players[0].chips = 30
+
+      const result = applyAction(players, 0, 'raise', 100, 100, 20)
+
+      expect(result.updatedPlayers[0].totalContribution).toBe(30)
+      expect(result.updatedPlayers[0].action).toBe('all-in')
+    })
+  })
+
   describe('不変性', () => {
     test('他のプレイヤーの状態を変更しない', () => {
       const players = createActivePlayers(3)
